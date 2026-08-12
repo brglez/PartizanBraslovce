@@ -304,6 +304,16 @@ img { max-width: 100%; display: block; }
   font-weight: 700;
 }
 
+.card-link {
+  display: inline-block;
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: .92rem;
+  color: var(--accent);
+  transition: color .2s ease;
+}
+.card-link:hover { color: var(--accent-dark); }
+
 /* ---------- PRICING ---------- */
 .pricing {
   display: grid;
