@@ -257,6 +257,7 @@ img { max-width: 100%; display: block; }
   margin-top: 50px;
 }
 .card {
+  min-width: 0;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -311,6 +312,7 @@ img { max-width: 100%; display: block; }
   margin-top: 50px;
 }
 .price-card {
+  min-width: 0;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -404,6 +406,7 @@ img { max-width: 100%; display: block; }
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .contact-form label {
   font-size: .85rem;
@@ -413,6 +416,8 @@ img { max-width: 100%; display: block; }
 .contact-form input,
 .contact-form select,
 .contact-form textarea {
+  width: 100%;
+  min-width: 0;
   font-family: var(--ff-body);
   font-size: .95rem;
   padding: 12px 14px;
@@ -421,6 +426,7 @@ img { max-width: 100%; display: block; }
   background: #fafbfd;
   color: var(--ink);
   resize: vertical;
+  box-sizing: border-box;
 }
 .contact-form input:focus,
 .contact-form select:focus,
@@ -435,6 +441,7 @@ img { max-width: 100%; display: block; }
   color: var(--text);
   border-radius: var(--radius);
   padding: 36px;
+  min-width: 0;
 }
 .contact-info h3 { margin-top: 0; }
 .contact-info p { color: var(--text-dim); line-height: 1.7; }
