@@ -1,0 +1,81 @@
+// Prisma schema for the Partizan Braslovče telovadnica booking platform.
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum Sport {
+  BADMINTON
+  ODBOJKA
+  KOSARKA
+  DRUGO
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role      @default(MEMBER)
+  createdAt    DateTime  @default(now())
+  bookings     Booking[]
+}
+
+// A single hourly slot in the telovadnica. One booking = the whole hall.
+model Booking {
+  id         String        @id @default(cuid())
+  sport      Sport
+  startTime  DateTime
+  endTime    DateTime
+  status     BookingStatus @default(PENDING)
+
+  // Set when a logged-in member makes the booking (auto-confirmed).
+  userId     String?
+  user       User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Filled in for guest bookings (no account, awaits admin approval).
+  guestName  String?
+  guestEmail String?
+  guestPhone String?
+
+  notes      String?
+
+  // Placeholder for a future online-payment flow (not wired up yet).
+  paymentStatus String?    @default("NONE")
+
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([startTime, endTime])
+  @@index([status])
+}
+
+// Admin-blocked periods (maintenance, tournaments, closures) - no booking may overlap these.
+model BlockedSlot {
+  id        String   @id @default(cuid())
+  startTime DateTime
+  endTime   DateTime
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([startTime, endTime])
+}

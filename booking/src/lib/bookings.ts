@@ -1,0 +1,125 @@
+import { prisma } from "@/lib/prisma";
+import { OPENING_HOUR, CLOSING_HOUR, SLOT_MINUTES } from "@/lib/config";
+import { z } from "zod";
+
+export const bookingInputSchema = z
+  .object({
+    sport: z.enum(["BADMINTON", "ODBOJKA", "KOSARKA", "DRUGO"]),
+    startTime: z.iso.datetime(),
+    endTime: z.iso.datetime(),
+    guestName: z.string().trim().min(2).max(120).optional(),
+    guestEmail: z.email().optional(),
+    guestPhone: z.string().trim().min(5).max(30).optional(),
+    notes: z.string().trim().max(500).optional(),
+  })
+  .refine((v) => new Date(v.endTime) > new Date(v.startTime), {
+    message: "Čas konca mora biti za časom začetka.",
+  });
+
+export class BookingValidationError extends Error {}
+export class BookingOverlapError extends Error {}
+
+function isAlignedToSlot(date: Date) {
+  return (
+    date.getUTCMinutes() === 0 &&
+    date.getUTCSeconds() === 0 &&
+    date.getUTCMilliseconds() === 0
+  );
+}
+
+export function assertWithinOperatingHours(startTime: Date, endTime: Date) {
+  const durationMinutes = (endTime.getTime() - startTime.getTime()) / 60000;
+  if (durationMinutes <= 0 || durationMinutes % SLOT_MINUTES !== 0) {
+    throw new BookingValidationError("Termin mora trajati celo število ur.");
+  }
+  if (!isAlignedToSlot(startTime) || !isAlignedToSlot(endTime)) {
+    throw new BookingValidationError("Termin se mora začeti ob polni uri.");
+  }
+  if (startTime.getTime() < Date.now()) {
+    throw new BookingValidationError("Ni mogoče rezervirati termina v preteklosti.");
+  }
+  // Local-time hour check based on the server's configured hall hours.
+  const startHour = startTime.getHours();
+  const endHour = endTime.getHours() === 0 ? 24 : endTime.getHours();
+  if (startHour < OPENING_HOUR || endHour > CLOSING_HOUR) {
+    throw new BookingValidationError(
+      `Termini so mogoči med ${OPENING_HOUR}:00 in ${CLOSING_HOUR}:00.`
+    );
+  }
+}
+
+export async function findConflicts(startTime: Date, endTime: Date, excludeBookingId?: string) {
+  const [bookings, blockedSlots] = await Promise.all([
+    prisma.booking.findMany({
+      where: {
+        id: excludeBookingId ? { not: excludeBookingId } : undefined,
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+      },
+    }),
+    prisma.blockedSlot.findMany({
+      where: {
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+      },
+    }),
+  ]);
+  return { bookings, blockedSlots };
+}
+
+type CreateBookingInput = z.infer<typeof bookingInputSchema>;
+
+export async function createBooking(
+  input: CreateBookingInput,
+  actor: { id: string; role: "MEMBER" | "ADMIN" } | null
+) {
+  const startTime = new Date(input.startTime);
+  const endTime = new Date(input.endTime);
+  assertWithinOperatingHours(startTime, endTime);
+
+  const isMember = actor !== null;
+  if (!isMember) {
+    if (!input.guestName || !input.guestEmail || !input.guestPhone) {
+      throw new BookingValidationError(
+        "Za rezervacijo brez prijave so ime, e-pošta in telefon obvezni."
+      );
+    }
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const conflicts = await tx.booking.findMany({
+      where: {
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+      },
+    });
+    if (conflicts.length > 0) {
+      throw new BookingOverlapError("Ta termin je že zaseden ali čaka na potrditev.");
+    }
+    const blocked = await tx.blockedSlot.findMany({
+      where: {
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+      },
+    });
+    if (blocked.length > 0) {
+      throw new BookingOverlapError("Ta termin ni na voljo (blokiran s strani upravitelja).");
+    }
+
+    return tx.booking.create({
+      data: {
+        sport: input.sport,
+        startTime,
+        endTime,
+        notes: input.notes,
+        status: isMember ? "CONFIRMED" : "PENDING",
+        userId: isMember ? actor!.id : undefined,
+        guestName: isMember ? undefined : input.guestName,
+        guestEmail: isMember ? undefined : input.guestEmail,
+        guestPhone: isMember ? undefined : input.guestPhone,
+      },
+    });
+  });
+}
