@@ -58,7 +58,30 @@
 }
 </script>
 </head>
-<body>
+<body class="has-preview-banner">
+
+<!-- ZAČASNO: predogled rezervacijske platforme za naročnika. Odstrani ta <div class="preview-banner">…</div>,
+     class "has-preview-banner" na <body> in spodnji <style> blok, ko predogled ni več potreben. -->
+<style>
+  .preview-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 101;
+    background: linear-gradient(120deg, #ff6b35, #e6551f);
+    color: #fff;
+    text-align: center;
+    padding: 11px 20px;
+    font: 600 .88rem/1.4 "Inter", sans-serif;
+  }
+  .preview-banner a { color: #fff; text-decoration: underline; font-weight: 700; }
+  body.has-preview-banner { padding-top: 42px; }
+  body.has-preview-banner .site-header { top: 42px; }
+  @media (max-width: 600px) { body.has-preview-banner { padding-top: 58px; } body.has-preview-banner .site-header { top: 58px; } }
+</style>
+<div class="preview-banner">
+  🏸 Predogled nove rezervacijske platforme za telovadnico —
+  <a href="https://claude.ai/code/artifact/260a9da6-9fcf-44cf-a742-75d65cdbc3c5" target="_blank" rel="noopener">poglej zaslone</a>
+</div>
 
 <header class="site-header" id="header">
   <div class="container header-inner">
