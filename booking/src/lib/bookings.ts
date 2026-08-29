@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { SLOT_MINUTES } from "@/lib/config";
+import { SPORT_LABELS, SLOT_MINUTES } from "@/lib/config";
 import { getHallHours } from "@/lib/settings";
+import { notifyAdmins, fmtRange } from "@/lib/notify";
 import { z } from "zod";
 
 export const bookingInputSchema = z
@@ -102,7 +103,7 @@ export async function createBooking(
     }
   }
 
-  return prisma.$transaction(async (tx) => {
+  const booking = await prisma.$transaction(async (tx) => {
     const conflicts = await tx.booking.findMany({
       where: {
         status: { in: ["PENDING", "CONFIRMED"] },
@@ -137,4 +138,23 @@ export async function createBooking(
       },
     });
   });
+
+  let who = `${input.guestName} (gost, ${input.guestEmail}, ${input.guestPhone})`;
+  if (isMember) {
+    const user = await prisma.user.findUnique({ where: { id: actor!.id }, select: { name: true } });
+    who = `${user?.name ?? "Član"} (član)`;
+  }
+  await notifyAdmins(
+    isMember ? "Nova rezervacija (potrjena)" : "Nova rezervacija - čaka na potrditev",
+    [
+      `${who} je rezerviral(a) termin: ${fmtRange(startTime, endTime)}.`,
+      `Šport: ${SPORT_LABELS[input.sport]}`,
+      input.notes ? `Opomba: ${input.notes}` : null,
+      !isMember ? "Rezervacija čaka na potrditev v admin plošči." : null,
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
+
+  return booking;
 }

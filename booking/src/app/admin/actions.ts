@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { assertValidBlockedSlot } from "@/lib/bookings";
 import { updateHallHours } from "@/lib/settings";
+import { notifyAdmins, fmtRange } from "@/lib/notify";
 
 async function requireAdmin() {
   const session = await auth();
@@ -17,36 +18,48 @@ async function requireAdmin() {
 }
 
 export async function approveBooking(bookingId: string) {
-  await requireAdmin();
-  await prisma.booking.update({
+  const session = await requireAdmin();
+  const booking = await prisma.booking.update({
     where: { id: bookingId, status: "PENDING" },
     data: { status: "CONFIRMED" },
   });
   revalidatePath("/admin");
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  await notifyAdmins(
+    "Rezervacija potrjena",
+    `${session.user.name} je potrdil(a) rezervacijo (${booking.guestName ?? "gost"}) za ${fmtRange(booking.startTime, booking.endTime)}.`
+  );
 }
 
 export async function rejectBooking(bookingId: string) {
-  await requireAdmin();
-  await prisma.booking.update({
+  const session = await requireAdmin();
+  const booking = await prisma.booking.update({
     where: { id: bookingId, status: "PENDING" },
     data: { status: "REJECTED" },
   });
   revalidatePath("/admin");
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  await notifyAdmins(
+    "Rezervacija zavrnjena",
+    `${session.user.name} je zavrnil(a) rezervacijo (${booking.guestName ?? "gost"}) za ${fmtRange(booking.startTime, booking.endTime)}.`
+  );
 }
 
 export async function cancelBooking(bookingId: string) {
-  await requireAdmin();
-  await prisma.booking.update({
+  const session = await requireAdmin();
+  const booking = await prisma.booking.update({
     where: { id: bookingId },
     data: { status: "CANCELLED" },
   });
   revalidatePath("/admin");
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  await notifyAdmins(
+    "Rezervacija preklicana",
+    `${session.user.name} je preklical(a) rezervacijo za ${fmtRange(booking.startTime, booking.endTime)}.`
+  );
 }
 
 const blockedSlotSchema = z
@@ -65,7 +78,7 @@ export async function createBlockedSlot(
   _prev: BlockSlotState,
   formData: FormData
 ): Promise<BlockSlotState> {
-  await requireAdmin();
+  const session = await requireAdmin();
   const parsed = blockedSlotSchema.safeParse({
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
@@ -87,14 +100,22 @@ export async function createBlockedSlot(
   });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  await notifyAdmins(
+    "Koledar: nov blokiran termin",
+    `${session.user.name} je blokiral(a) termin ${fmtRange(startTime, endTime)} - ${parsed.data.reason}.`
+  );
   return undefined;
 }
 
 export async function deleteBlockedSlot(id: string) {
-  await requireAdmin();
-  await prisma.blockedSlot.delete({ where: { id } });
+  const session = await requireAdmin();
+  const removed = await prisma.blockedSlot.delete({ where: { id } });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  await notifyAdmins(
+    "Koledar: blokada odstranjena",
+    `${session.user.name} je odstranil(a) blokado ${fmtRange(removed.startTime, removed.endTime)} - ${removed.reason}.`
+  );
 }
 
 const recurringOccurrenceSchema = z
@@ -120,7 +141,7 @@ export async function createRecurringBlockedSlot(
   _prev: RecurringBlockState,
   formData: FormData
 ): Promise<RecurringBlockState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   let occurrences: unknown;
   try {
@@ -153,14 +174,23 @@ export async function createRecurringBlockedSlot(
   });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  const first = parsed.data.occurrences[0];
+  await notifyAdmins(
+    "Koledar: nova ponavljajoča blokada",
+    `${session.user.name} je dodal(a) ponavljajočo blokado (${parsed.data.occurrences.length} terminov, prvi ${fmtRange(new Date(first.startTime), new Date(first.endTime))}) - ${parsed.data.reason}.`
+  );
   return undefined;
 }
 
 export async function deleteBlockedSlotSeries(seriesId: string) {
-  await requireAdmin();
-  await prisma.blockedSlot.deleteMany({ where: { seriesId } });
+  const session = await requireAdmin();
+  const removed = await prisma.blockedSlot.deleteMany({ where: { seriesId } });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  await notifyAdmins(
+    "Koledar: ponavljajoča blokada odstranjena",
+    `${session.user.name} je odstranil(a) ponavljajočo blokado (${removed.count} terminov).`
+  );
 }
 
 const memberSchema = z.object({
@@ -229,11 +259,13 @@ const hallHoursSchema = z
 
 export type HallHoursState = { error?: string } | undefined;
 
+const WEEKDAY_NAMES = ["Ned", "Pon", "Tor", "Sre", "Čet", "Pet", "Sob"];
+
 export async function updateHallHoursAction(
   _prev: HallHoursState,
   formData: FormData
 ): Promise<HallHoursState> {
-  await requireAdmin();
+  const session = await requireAdmin();
   const parsed = hallHoursSchema.safeParse({
     openingHour: formData.get("openingHour"),
     closingHour: formData.get("closingHour"),
@@ -245,5 +277,12 @@ export async function updateHallHoursAction(
   await updateHallHours(parsed.data.openingHour, parsed.data.closingHour, parsed.data.closedWeekdays);
   revalidatePath("/admin/koledar");
   revalidatePath("/");
+  const closedLabel = parsed.data.closedWeekdays.length
+    ? parsed.data.closedWeekdays.map((d) => WEEKDAY_NAMES[d]).join(", ")
+    : "brez";
+  await notifyAdmins(
+    "Koledar: spremenjen čas obratovanja",
+    `${session.user.name} je nastavil(a) čas obratovanja na ${parsed.data.openingHour}:00–${parsed.data.closingHour}:00. Zaprti dnevi: ${closedLabel}.`
+  );
   return undefined;
 }
