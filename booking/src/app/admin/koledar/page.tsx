@@ -55,7 +55,15 @@ export default async function AdminCalendarPage() {
         startTime: { lt: weekEnd },
         endTime: { gt: weekStart },
       },
-      select: { id: true, sport: true, startTime: true, endTime: true, status: true },
+      select: {
+        id: true,
+        sport: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        guestName: true,
+        user: { select: { name: true } },
+      },
       orderBy: { startTime: "asc" },
     }),
     prisma.blockedSlot.findMany({
@@ -91,10 +99,12 @@ export default async function AdminCalendarPage() {
           onDeleteBlocked={deleteBlockedSlot}
           initialWeekStart={weekStart.toISOString()}
           initialBookings={weekBookings.map((b) => ({
-            ...b,
+            id: b.id,
+            sport: b.sport,
             status: b.status as "PENDING" | "CONFIRMED",
             startTime: b.startTime.toISOString(),
             endTime: b.endTime.toISOString(),
+            bookedBy: b.user ? `${b.user.name} (član)` : `${b.guestName} (gost)`,
           }))}
           initialBlockedSlots={weekBlockedSlots.map((b) => ({
             ...b,

@@ -10,6 +10,9 @@ export interface CalendarBooking {
   startTime: string;
   endTime: string;
   status: "PENDING" | "CONFIRMED";
+  // Only populated on the admin calendar feed (not the public one) - who
+  // the reservation is for, so an admin can tell at a glance.
+  bookedBy?: string;
 }
 
 export interface CalendarBlockedSlot {

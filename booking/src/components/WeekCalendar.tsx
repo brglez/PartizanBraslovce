@@ -253,6 +253,7 @@ export default function WeekCalendar({
                         status={status}
                         selected={selected}
                         sport={booking?.sport}
+                        bookedBy={booking?.bookedBy}
                         reason={blocked?.reason}
                         readOnly={readOnly}
                         onClick={
@@ -325,6 +326,7 @@ function SlotCell({
   status,
   selected,
   sport,
+  bookedBy,
   reason,
   readOnly,
   onClick,
@@ -333,6 +335,7 @@ function SlotCell({
   status: string;
   selected?: boolean;
   sport?: string;
+  bookedBy?: string;
   reason?: string;
   readOnly?: boolean;
   onClick?: () => void;
@@ -361,44 +364,54 @@ function SlotCell({
     );
   }
   if (status === "CONFIRMED") {
+    const icon = sport ? SPORT_ICONS[sport] : "🔒";
+    const content = bookedBy ? (
+      <span className="line-clamp-2 px-0.5 leading-tight">
+        {icon} {bookedBy}
+      </span>
+    ) : (
+      icon
+    );
+    const title = bookedBy ? `Zasedeno - ${bookedBy}` : "Zasedeno";
     if (onFree) {
       return (
         <button
           onClick={onFree}
-          className="w-full h-full rounded bg-accent/15 border border-accent/30 hover:bg-red-100 hover:border-red-300 flex items-center justify-center text-sm transition-colors"
-          title="Klikni za preklic rezervacije in sprostitev termina"
+          className="w-full h-full rounded bg-accent/15 border border-accent/30 hover:bg-red-100 hover:border-red-300 flex items-center justify-center overflow-hidden text-center text-[9px] transition-colors"
+          title={title + " - klikni za preklic in sprostitev termina"}
         >
-          {sport ? SPORT_ICONS[sport] : "🔒"}
+          {content}
         </button>
       );
     }
     return (
       <div
-        className="w-full h-full rounded bg-accent/15 border border-accent/30 flex items-center justify-center text-sm"
-        title="Zasedeno"
+        className="w-full h-full rounded bg-accent/15 border border-accent/30 flex items-center justify-center overflow-hidden text-center text-[9px]"
+        title={title}
       >
-        {sport ? SPORT_ICONS[sport] : "🔒"}
+        {content}
       </div>
     );
   }
   if (status === "PENDING") {
+    const label = bookedBy ? `V obravnavi - ${bookedBy}` : "V obravnavi";
     if (onFree) {
       return (
         <button
           onClick={onFree}
-          className="w-full h-full rounded bg-amber-50 border border-amber-200 hover:bg-red-100 hover:border-red-300 flex items-center justify-center text-[10px] font-semibold text-amber-700 transition-colors"
-          title="Klikni za preklic rezervacije in sprostitev termina"
+          className="w-full h-full rounded bg-amber-50 border border-amber-200 hover:bg-red-100 hover:border-red-300 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] font-semibold text-amber-700 leading-tight transition-colors"
+          title={label + " - klikni za preklic in sprostitev termina"}
         >
-          V obravnavi
+          <span className="line-clamp-2">{label}</span>
         </button>
       );
     }
     return (
       <div
-        className="w-full h-full rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-semibold text-amber-700"
-        title="Čaka na potrditev"
+        className="w-full h-full rounded bg-amber-50 border border-amber-200 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] font-semibold text-amber-700 leading-tight"
+        title={label}
       >
-        V obravnavi
+        <span className="line-clamp-2">{label}</span>
       </div>
     );
   }
