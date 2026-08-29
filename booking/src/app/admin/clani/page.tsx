@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { removeMember } from "../actions";
 import AddMemberForm from "./AddMemberForm";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 
 export default async function AdminMembersPage() {
   const [admins, members] = await Promise.all([
@@ -61,7 +62,13 @@ export default async function AdminMembersPage() {
                   </p>
                 </div>
                 <form action={removeMember.bind(null, m.id)}>
-                  <button className="text-red-600 hover:underline font-semibold">Odstrani</button>
+                  <ConfirmSubmitButton
+                    confirmMessage={`Odstraniti člana ${m.name}?`}
+                    pendingLabel="Odstranjujem ..."
+                    className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                  >
+                    Odstrani
+                  </ConfirmSubmitButton>
                 </form>
               </div>
             ))}

@@ -7,6 +7,7 @@ import BlockSlotForm from "./BlockSlotForm";
 import RecurringBlockForm from "./RecurringBlockForm";
 import HallHoursForm from "./HallHoursForm";
 import WeekCalendar from "@/components/WeekCalendar";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 
 function fmt(date: Date) {
   return date.toLocaleString("sl-SI", {
@@ -161,9 +162,13 @@ export default async function AdminCalendarPage() {
                     </span>
                   </span>
                   <form action={deleteBlockedSlotSeries.bind(null, seriesId)}>
-                    <button className="text-red-600 hover:underline font-semibold">
+                    <ConfirmSubmitButton
+                      confirmMessage={`Odstraniti celotno serijo (${group.length} terminov)?`}
+                      pendingLabel="Odstranjujem ..."
+                      className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                    >
                       Odstrani celotno serijo
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                 </div>
               );
@@ -187,7 +192,13 @@ export default async function AdminCalendarPage() {
                   <span className="text-ink-dim">{b.reason}</span>
                 </span>
                 <form action={deleteBlockedSlot.bind(null, b.id)}>
-                  <button className="text-red-600 hover:underline font-semibold">Odstrani</button>
+                  <ConfirmSubmitButton
+                    confirmMessage="Odstraniti to blokado?"
+                    pendingLabel="Odstranjujem ..."
+                    className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                  >
+                    Odstrani
+                  </ConfirmSubmitButton>
                 </form>
               </div>
             ))}
@@ -232,15 +243,33 @@ export default async function AdminCalendarPage() {
                   {b.status === "PENDING" ? (
                     <>
                       <form action={approveBooking.bind(null, b.id)}>
-                        <button className="text-teal-700 hover:underline font-semibold">Potrdi</button>
+                        <ConfirmSubmitButton
+                          confirmMessage="Potrditi to rezervacijo?"
+                          pendingLabel="Potrjujem ..."
+                          className="text-teal-700 hover:underline font-semibold disabled:opacity-60"
+                        >
+                          Potrdi
+                        </ConfirmSubmitButton>
                       </form>
                       <form action={rejectBooking.bind(null, b.id)}>
-                        <button className="text-red-600 hover:underline font-semibold">Zavrni</button>
+                        <ConfirmSubmitButton
+                          confirmMessage="Zavrniti to rezervacijo?"
+                          pendingLabel="Zavračam ..."
+                          className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                        >
+                          Zavrni
+                        </ConfirmSubmitButton>
                       </form>
                     </>
                   ) : (
                     <form action={cancelBooking.bind(null, b.id)}>
-                      <button className="text-red-600 hover:underline font-semibold">Prekliči</button>
+                      <ConfirmSubmitButton
+                        confirmMessage="Preklicati to rezervacijo in sprostiti termin?"
+                        pendingLabel="Prekličem ..."
+                        className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                      >
+                        Prekliči
+                      </ConfirmSubmitButton>
                     </form>
                   )}
                 </div>

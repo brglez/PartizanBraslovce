@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { SPORT_ICONS, SPORT_LABELS } from "@/lib/config";
 import { approveBooking, rejectBooking } from "./actions";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 
 function fmt(date: Date) {
   return date.toLocaleString("sl-SI", {
@@ -56,14 +57,22 @@ export default async function AdminDashboard() {
                 </div>
                 <div className="flex gap-2">
                   <form action={approveBooking.bind(null, b.id)}>
-                    <button className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors">
+                    <ConfirmSubmitButton
+                      confirmMessage="Potrditi to rezervacijo?"
+                      pendingLabel="Potrjujem ..."
+                      className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors disabled:opacity-60"
+                    >
                       Potrdi
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                   <form action={rejectBooking.bind(null, b.id)}>
-                    <button className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">
+                    <ConfirmSubmitButton
+                      confirmMessage="Zavrniti to rezervacijo?"
+                      pendingLabel="Zavračam ..."
+                      className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+                    >
                       Zavrni
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                 </div>
               </div>
