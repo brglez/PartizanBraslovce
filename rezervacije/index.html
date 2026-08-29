@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rezervacije telovadnice | Partizan Braslovče</title>
+<meta name="description" content="Osnutek rezervacijske platforme za telovadnico Partizan Braslovče – tedenski koledar terminov za badminton, odbojko in košarko.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://brglez.si/partizanbraslovce/rezervacije/">
+
+<link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css?v=20260824">
+<link rel="stylesheet" href="style.css?v=20260824d">
+</head>
+<body class="subpage">
+
+<div class="preview-banner">
+  🔧 Osnutek / demo rezervacijske platforme – termini spodaj so primer, rezervacije še niso resnične. Za rezervacijo telovadnice zaenkrat pokličite <a href="tel:+38670292363">070 292 363</a> ali pišite na <a href="mailto:zanmuhovic6@gmail.com">zanmuhovic6@gmail.com</a>.
+</div>
+
+<header class="site-header" id="header">
+  <div class="container header-inner">
+    <a href="../index.html" class="logo">
+      <svg class="logo-icon" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="3"/>
+        <path d="M24 3c8 6 8 30 0 42M8 12c8 5 24 5 32 0M8 36c8-5 24-5 32 0" fill="none" stroke="currentColor" stroke-width="2.5"/>
+      </svg>
+      <span>Partizan <strong>Braslovče</strong></span>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <a href="../index.html#objekti">Objekti</a>
+      <a href="../index.html#cenik">Cenik</a>
+      <a href="../index.html#lokacija">Lokacija</a>
+      <a href="../index.html#kontakt">Kontakt</a>
+    </nav>
+
+    <a href="../index.html#kontakt" class="btn btn-accent nav-cta">Kontakt</a>
+
+    <button class="nav-toggle" id="navToggle" aria-label="Odpri meni" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <section class="rez-hero">
+    <div class="container">
+      <p class="eyebrow reveal">Telovadnica &middot; badminton, odbojka, košarka</p>
+      <h1 class="reveal">Rezervacije termina</h1>
+      <p class="rez-lead reveal">Označite enega ali več prostih terminov v tedenskem koledarju spodaj, nato kliknite "Rezerviraj". Ena rezervacija termina pomeni najem cele dvorane za izbrano uro.</p>
+    </div>
+  </section>
+
+  <section class="section" id="koledar">
+    <div class="container">
+
+      <div class="rez-legend reveal">
+        <span class="legend-item"><i class="dot dot-free"></i> Prosto</span>
+        <span class="legend-item"><i class="dot dot-selected"></i> Izbrano</span>
+        <span class="legend-item"><i class="dot dot-booked"></i> Zasedeno</span>
+        <span class="legend-item"><i class="dot dot-blocked"></i> Blokirano</span>
+      </div>
+
+      <div class="rez-week-nav reveal">
+        <button class="btn btn-ghost-dark" id="prevWeek" type="button">&larr; Prejšnji teden</button>
+        <span id="weekLabel" class="rez-week-label"></span>
+        <button class="btn btn-ghost-dark" id="nextWeek" type="button">Naslednji teden &rarr;</button>
+      </div>
+
+      <div class="rez-calendar-wrap reveal">
+        <table class="rez-calendar" id="calendar" aria-label="Tedenski koledar terminov telovadnice"></table>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<div class="rez-selection-bar" id="selectionBar" hidden>
+  <span id="selectionCount">0 izbranih terminov</span>
+  <div class="rez-selection-actions">
+    <button class="btn btn-ghost-dark" id="selectionClearBtn" type="button">Počisti</button>
+    <button class="btn btn-accent" id="selectionBookBtn" type="button">Rezerviraj</button>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <p class="footer-brand">Partizan Braslovče</p>
+      <p>Igrišča za odbojko na mivki &middot; Telovadnica &middot; Športni bar</p>
+    </div>
+    <div class="footer-legal">
+      <p>Žan Muhovic s.p.</p>
+      <p>Rakovlje 39, 3314 Braslovče</p>
+      <p>Davčna št.: 99864932</p>
+      <p><a href="tel:+38670292363">070 292 363</a></p>
+      <p><a href="mailto:zanmuhovic6@gmail.com">zanmuhovic6@gmail.com</a></p>
+    </div>
+    <div class="footer-nav">
+      <a href="../index.html#objekti">Objekti</a>
+      <a href="../index.html#cenik">Cenik</a>
+      <a href="../index.html#lokacija">Lokacija</a>
+      <a href="../index.html#kontakt">Kontakt</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p>&copy; <span id="year"></span> Partizan Braslovče &middot; Žan Muhovic s.p.</p>
+  </div>
+</footer>
+
+<!-- REZERVACIJA MODAL -->
+<div class="rez-modal" id="rezModal" hidden>
+  <div class="rez-modal-inner">
+    <button class="rez-modal-close" id="rezModalClose" aria-label="Zapri">&times;</button>
+    <p class="eyebrow">Rezervacija termina (demo)</p>
+    <h3>Izbrani termini</h3>
+    <ul class="rez-modal-list" id="rezModalList"></ul>
+    <form id="rezForm">
+      <label for="rezName">Ime in priimek</label>
+      <input type="text" id="rezName" required placeholder="Janez Novak">
+      <label for="rezEmail">E-pošta</label>
+      <input type="email" id="rezEmail" required placeholder="janez@example.com">
+      <label for="rezPhone">Telefon</label>
+      <input type="tel" id="rezPhone" required placeholder="040 123 456">
+      <button type="submit" class="btn btn-accent">Pošlji povpraševanje</button>
+      <p class="rez-modal-note">To je osnutek – povpraševanje se ne bo poslalo. Za pravo rezervacijo pokličite <a href="tel:+38670292363">070 292 363</a>.</p>
+    </form>
+  </div>
+</div>
+
+<script src="script.js?v=20260824d"></script>
+</body>
+</html>
