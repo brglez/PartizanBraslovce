@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { assertWithinOperatingHours } from "@/lib/bookings";
+import { assertValidBlockedSlot } from "@/lib/bookings";
 
 async function requireAdmin() {
   const session = await auth();
@@ -76,7 +76,7 @@ export async function createBlockedSlot(
   const startTime = new Date(parsed.data.startTime);
   const endTime = new Date(parsed.data.endTime);
   try {
-    assertWithinOperatingHours(startTime, endTime);
+    assertValidBlockedSlot(startTime, endTime);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Neveljaven termin." };
   }
@@ -92,6 +92,72 @@ export async function createBlockedSlot(
 export async function deleteBlockedSlot(id: string) {
   await requireAdmin();
   await prisma.blockedSlot.delete({ where: { id } });
+  revalidatePath("/admin/koledar");
+  revalidatePath("/");
+}
+
+const recurringOccurrenceSchema = z
+  .object({
+    startTime: z.iso.datetime(),
+    endTime: z.iso.datetime(),
+  })
+  .refine((v) => new Date(v.endTime) > new Date(v.startTime), {
+    message: "Čas konca mora biti za časom začetka.",
+  });
+
+const recurringBlockSchema = z.object({
+  occurrences: z
+    .array(recurringOccurrenceSchema)
+    .min(1, "Izbrano obdobje ne vsebuje nobenega termina.")
+    .max(200, "Preveč terminov naenkrat (največ 200) - skrajšaj obdobje sezone."),
+  reason: z.string().trim().min(2).max(200),
+});
+
+export type RecurringBlockState = { error?: string } | undefined;
+
+export async function createRecurringBlockedSlot(
+  _prev: RecurringBlockState,
+  formData: FormData
+): Promise<RecurringBlockState> {
+  await requireAdmin();
+
+  let occurrences: unknown;
+  try {
+    occurrences = JSON.parse(String(formData.get("occurrences") || "[]"));
+  } catch {
+    return { error: "Neveljavni podatki o terminih." };
+  }
+
+  const parsed = recurringBlockSchema.safeParse({ occurrences, reason: formData.get("reason") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
+  }
+
+  for (const occ of parsed.data.occurrences) {
+    try {
+      assertValidBlockedSlot(new Date(occ.startTime), new Date(occ.endTime));
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : "Neveljaven termin v seriji." };
+    }
+  }
+
+  const seriesId = crypto.randomUUID();
+  await prisma.blockedSlot.createMany({
+    data: parsed.data.occurrences.map((occ) => ({
+      startTime: new Date(occ.startTime),
+      endTime: new Date(occ.endTime),
+      reason: parsed.data.reason,
+      seriesId,
+    })),
+  });
+  revalidatePath("/admin/koledar");
+  revalidatePath("/");
+  return undefined;
+}
+
+export async function deleteBlockedSlotSeries(seriesId: string) {
+  await requireAdmin();
+  await prisma.blockedSlot.deleteMany({ where: { seriesId } });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
 }

@@ -48,6 +48,15 @@ export function assertWithinOperatingHours(startTime: Date, endTime: Date) {
   }
 }
 
+// Admin-blocked periods aren't member/guest bookings - they don't need to
+// align to a whole-hour slot (e.g. "četrtek 20:30-22:00" is a valid block),
+// they just need a sane, positive duration.
+export function assertValidBlockedSlot(startTime: Date, endTime: Date) {
+  if (endTime.getTime() <= startTime.getTime()) {
+    throw new BookingValidationError("Čas konca mora biti za časom začetka.");
+  }
+}
+
 export async function findConflicts(startTime: Date, endTime: Date, excludeBookingId?: string) {
   const [bookings, blockedSlots] = await Promise.all([
     prisma.booking.findMany({

@@ -77,5 +77,11 @@ model BlockedSlot {
   reason    String
   createdAt DateTime @default(now())
 
+  // Set when this slot was generated as one occurrence of a recurring block
+  // (e.g. "every Thursday, whole season"), so the whole series can be
+  // managed/removed together. Null for one-off blocks.
+  seriesId  String?
+
   @@index([startTime, endTime])
+  @@index([seriesId])
 }

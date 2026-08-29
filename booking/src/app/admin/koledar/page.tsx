@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { SPORT_ICONS, SPORT_LABELS } from "@/lib/config";
-import { cancelBooking, deleteBlockedSlot } from "../actions";
+import { cancelBooking, deleteBlockedSlot, deleteBlockedSlotSeries } from "../actions";
 import BlockSlotForm from "./BlockSlotForm";
+import RecurringBlockForm from "./RecurringBlockForm";
 
 function fmt(date: Date) {
   return date.toLocaleString("sl-SI", {
@@ -11,6 +12,18 @@ function fmt(date: Date) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function fmtTime(date: Date) {
+  return date.toLocaleTimeString("sl-SI", { hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtDate(date: Date) {
+  return date.toLocaleDateString("sl-SI", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function fmtWeekday(date: Date) {
+  return date.toLocaleDateString("sl-SI", { weekday: "long" });
 }
 
 export default async function AdminCalendarPage() {
@@ -30,6 +43,15 @@ export default async function AdminCalendarPage() {
     }),
   ]);
 
+  const singleBlocks = blockedSlots.filter((b) => !b.seriesId);
+  const seriesGroups = new Map<string, typeof blockedSlots>();
+  for (const b of blockedSlots) {
+    if (!b.seriesId) continue;
+    const group = seriesGroups.get(b.seriesId);
+    if (group) group.push(b);
+    else seriesGroups.set(b.seriesId, [b]);
+  }
+
   return (
     <div className="space-y-10">
       <div>
@@ -39,18 +61,57 @@ export default async function AdminCalendarPage() {
         </div>
       </div>
 
-      {blockedSlots.length > 0 && (
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Ponavljajoča blokada (npr. cela sezona)</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <RecurringBlockForm />
+        </div>
+      </div>
+
+      {seriesGroups.size > 0 && (
+        <div>
+          <h2 className="font-head text-lg font-bold mb-3">Ponavljajoče blokade</h2>
+          <div className="space-y-2">
+            {[...seriesGroups.entries()].map(([seriesId, group]) => {
+              const first = group[0];
+              return (
+                <div
+                  key={seriesId}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-border bg-white p-3 text-sm"
+                >
+                  <span>
+                    Vsak <strong className="capitalize">{fmtWeekday(first.startTime)}</strong>{" "}
+                    {fmtTime(first.startTime)}–{fmtTime(first.endTime)}
+                    {" · "}
+                    <span className="text-ink-dim">{first.reason}</span>
+                    {" · "}
+                    <span className="text-ink-dim">
+                      {group.length} termin(ov), do {fmtDate(group[group.length - 1].startTime)}
+                    </span>
+                  </span>
+                  <form action={deleteBlockedSlotSeries.bind(null, seriesId)}>
+                    <button className="text-red-600 hover:underline font-semibold">
+                      Odstrani celotno serijo
+                    </button>
+                  </form>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {singleBlocks.length > 0 && (
         <div>
           <h2 className="font-head text-lg font-bold mb-3">Blokirani termini</h2>
           <div className="space-y-2">
-            {blockedSlots.map((b) => (
+            {singleBlocks.map((b) => (
               <div
                 key={b.id}
                 className="flex items-center justify-between gap-4 rounded-xl border border-border bg-white p-3 text-sm"
               >
                 <span>
-                  {fmt(b.startTime)} –{" "}
-                  {b.endTime.toLocaleTimeString("sl-SI", { hour: "2-digit", minute: "2-digit" })}
+                  {fmt(b.startTime)} – {fmtTime(b.endTime)}
                   {" · "}
                   <span className="text-ink-dim">{b.reason}</span>
                 </span>
