@@ -46,6 +46,9 @@ export default async function RootLayout({
               <Link href="/" className="text-text-dim hover:text-text transition-colors">
                 Koledar
               </Link>
+              <Link href="/navodila" className="text-text-dim hover:text-text transition-colors">
+                Navodila
+              </Link>
               {session?.user?.role === "ADMIN" && (
                 <Link href="/admin" className="text-text-dim hover:text-text transition-colors">
                   Admin

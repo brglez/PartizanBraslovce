@@ -22,6 +22,9 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/clani" className="text-ink-dim hover:text-accent transition-colors">
             Člani
           </Link>
+          <Link href="/admin/navodila" className="text-ink-dim hover:text-accent transition-colors">
+            Navodila
+          </Link>
         </nav>
       </div>
       {children}
