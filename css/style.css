@@ -87,6 +87,7 @@ img { max-width: 100%; display: block; }
   transition: color .2s ease;
 }
 .main-nav a:hover { color: var(--text); }
+.nav-link-rez { display: none; } /* podvojeno z Rezervacije gumbom na desktopu, vidno le v mobilnem meniju */
 
 .nav-cta { flex-shrink: 0; }
 .nav-cta-demo { flex-shrink: 0; padding: 12px 20px; font-size: .88rem; }
@@ -562,6 +563,7 @@ img { max-width: 100%; display: block; }
     gap: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,.3);
   }
+  .main-nav.open .nav-link-rez { display: block; }
   .header-inner { position: relative; }
 
   .hero { padding-top: 110px; }
