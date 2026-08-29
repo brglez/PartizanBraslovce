@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { SPORT_ICONS, SPORT_LABELS } from "@/lib/config";
+import { getHallHours } from "@/lib/settings";
 import { cancelBooking, deleteBlockedSlot, deleteBlockedSlotSeries } from "../actions";
 import BlockSlotForm from "./BlockSlotForm";
 import RecurringBlockForm from "./RecurringBlockForm";
+import HallHoursForm from "./HallHoursForm";
 
 function fmt(date: Date) {
   return date.toLocaleString("sl-SI", {
@@ -27,7 +29,8 @@ function fmtWeekday(date: Date) {
 }
 
 export default async function AdminCalendarPage() {
-  const [bookings, blockedSlots] = await Promise.all([
+  const [hallHours, bookings, blockedSlots] = await Promise.all([
+    getHallHours(),
     prisma.booking.findMany({
       where: {
         status: { in: ["PENDING", "CONFIRMED"] },
@@ -54,6 +57,13 @@ export default async function AdminCalendarPage() {
 
   return (
     <div className="space-y-10">
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Čas obratovanja</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <HallHoursForm openingHour={hallHours.openingHour} closingHour={hallHours.closingHour} />
+        </div>
+      </div>
+
       <div>
         <h2 className="font-head text-lg font-bold mb-3">Blokiraj termin</h2>
         <div className="rounded-xl border border-border bg-white p-4 shadow-sm">

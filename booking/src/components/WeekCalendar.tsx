@@ -9,13 +9,33 @@ import BookingModal from "./BookingModal";
 
 interface Props {
   isMember: boolean;
+  openingHour: number;
+  closingHour: number;
   initialWeekStart: string;
   initialBookings: CalendarBooking[];
   initialBlockedSlots: CalendarBlockedSlot[];
 }
 
+interface Selection {
+  day: Date;
+  startMinutes: number;
+  endMinutes: number;
+}
+
+function sameDay(a: Date, b: Date) {
+  return a.toDateString() === b.toDateString();
+}
+
+function fmtHM(minutes: number) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${h}:${m.toString().padStart(2, "0")}`;
+}
+
 export default function WeekCalendar({
   isMember,
+  openingHour,
+  closingHour,
   initialWeekStart,
   initialBookings,
   initialBlockedSlots,
@@ -24,13 +44,14 @@ export default function WeekCalendar({
   const [bookings, setBookings] = useState<CalendarBooking[]>(initialBookings);
   const [blockedSlots, setBlockedSlots] = useState<CalendarBlockedSlot[]>(initialBlockedSlots);
   const [loading, setLoading] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
     [weekStart]
   );
-  const slots = useMemo(() => slotsOfDay(), []);
+  const slots = useMemo(() => slotsOfDay(openingHour, closingHour), [openingHour, closingHour]);
   const thisWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
 
   const loadWeek = useCallback(async (start: Date) => {
@@ -50,19 +71,75 @@ export default function WeekCalendar({
   function goToWeek(delta: number) {
     const next = addWeeks(weekStart, delta);
     setWeekStart(next);
+    setSelection(null);
     loadWeek(next);
   }
 
   function handleSlotClick(day: Date, hour: number, minute: number) {
-    const start = new Date(day);
-    start.setHours(hour, minute, 0, 0);
-    const end = new Date(start.getTime() + SLOT_MINUTES * 60000);
-    setSelectedSlot({ start, end });
+    const t = hour * 60 + minute;
+
+    if (!selection || !sameDay(selection.day, day)) {
+      setSelection({ day, startMinutes: t, endMinutes: t + SLOT_MINUTES });
+      return;
+    }
+
+    // Extend backwards/forwards if the click is right next to the current range.
+    if (t === selection.startMinutes - SLOT_MINUTES) {
+      setSelection({ ...selection, startMinutes: t });
+      return;
+    }
+    if (t === selection.endMinutes) {
+      setSelection({ ...selection, endMinutes: t + SLOT_MINUTES });
+      return;
+    }
+
+    // Clicking inside the current range shrinks it from whichever edge was clicked.
+    if (t >= selection.startMinutes && t < selection.endMinutes) {
+      const isMultiSlot = selection.endMinutes - selection.startMinutes > SLOT_MINUTES;
+      if (t === selection.startMinutes) {
+        setSelection(isMultiSlot ? { ...selection, startMinutes: t + SLOT_MINUTES } : null);
+        return;
+      }
+      if (t === selection.endMinutes - SLOT_MINUTES) {
+        setSelection(isMultiSlot ? { ...selection, endMinutes: t } : null);
+        return;
+      }
+      // Clicked a slot in the middle of the range - start a fresh selection there.
+      setSelection({ day, startMinutes: t, endMinutes: t + SLOT_MINUTES });
+      return;
+    }
+
+    // Non-adjacent slot - start a new selection.
+    setSelection({ day, startMinutes: t, endMinutes: t + SLOT_MINUTES });
+  }
+
+  function isSelected(day: Date, hour: number, minute: number) {
+    if (!selection || !sameDay(selection.day, day)) return false;
+    const t = hour * 60 + minute;
+    return t >= selection.startMinutes && t < selection.endMinutes;
   }
 
   function handleBooked() {
+    setSelection(null);
+    setShowModal(false);
     loadWeek(weekStart);
   }
+
+  const selectionDuration = selection ? selection.endMinutes - selection.startMinutes : 0;
+  const canReserve = selectionDuration >= 60;
+
+  const selectionStartDate = useMemo(() => {
+    if (!selection) return null;
+    const d = new Date(selection.day);
+    d.setHours(Math.floor(selection.startMinutes / 60), selection.startMinutes % 60, 0, 0);
+    return d;
+  }, [selection]);
+  const selectionEndDate = useMemo(() => {
+    if (!selection) return null;
+    const d = new Date(selection.day);
+    d.setHours(Math.floor(selection.endMinutes / 60), selection.endMinutes % 60, 0, 0);
+    return d;
+  }, [selection]);
 
   return (
     <div>
@@ -95,16 +172,16 @@ export default function WeekCalendar({
         <table className="w-full border-collapse min-w-[720px]">
           <thead>
             <tr>
-              <th className="w-16 border-b border-border p-2 text-xs font-semibold text-ink-dim"></th>
+              <th className="w-16 border-b border-border p-1 text-xs font-semibold text-ink-dim"></th>
               {days.map((day) => (
                 <th
                   key={day.toISOString()}
-                  className="border-b border-l border-border p-2 text-center"
+                  className="border-b border-l border-border p-1.5 text-center"
                 >
                   <div className="text-xs uppercase tracking-wide text-ink-dim">
                     {format(day, "EEE", { locale: sl })}
                   </div>
-                  <div className="font-head font-bold">{format(day, "d.M.")}</div>
+                  <div className="font-head font-bold text-sm">{format(day, "d.M.")}</div>
                 </th>
               ))}
             </tr>
@@ -112,7 +189,7 @@ export default function WeekCalendar({
           <tbody>
             {slots.map(({ hour, minute }) => (
               <tr key={`${hour}:${minute}`}>
-                <td className="w-16 border-b border-border p-2 text-xs text-ink-dim text-right pr-3">
+                <td className="w-16 border-b border-border px-2 py-0.5 text-[11px] text-ink-dim text-right">
                   {hour}:{minute.toString().padStart(2, "0")}
                 </td>
                 {days.map((day) => {
@@ -125,14 +202,16 @@ export default function WeekCalendar({
                     bookings,
                     blockedSlots
                   );
+                  const selected = status === "FREE" && isSelected(day, hour, minute);
 
                   return (
                     <td
                       key={day.toISOString() + hour + ":" + minute}
-                      className="border-b border-l border-border p-1 h-12 text-center align-middle"
+                      className="border-b border-l border-border p-0.5 h-7 text-center align-middle"
                     >
                       <SlotCell
                         status={status}
+                        selected={selected}
                         sport={booking?.sport}
                         reason={blocked?.reason}
                         onClick={
@@ -148,12 +227,43 @@ export default function WeekCalendar({
         </table>
       </div>
 
-      {selectedSlot && (
+      {selection && (
+        <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-navy px-5 py-3.5 text-white shadow-2xl">
+          <p className="text-sm">
+            Izbrano: <strong className="capitalize">{format(selection.day, "EEEE d.M.", { locale: sl })}</strong>{" "}
+            {fmtHM(selection.startMinutes)}–{fmtHM(selection.endMinutes)}
+            {" "}
+            <span className="text-white/70">
+              ({(selectionDuration / 60).toLocaleString("sl-SI")} h)
+            </span>
+            {!canReserve && (
+              <span className="block text-xs text-amber-300">Izberi vsaj eno uro (2 zaporedna termina).</span>
+            )}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelection(null)}
+              className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold hover:bg-white/10 transition-colors"
+            >
+              Počisti
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              disabled={!canReserve}
+              className="rounded-full bg-accent px-5 py-2 text-sm font-semibold hover:bg-accent-dark transition-colors disabled:opacity-40 disabled:hover:bg-accent"
+            >
+              Rezerviraj
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showModal && selectionStartDate && selectionEndDate && (
         <BookingModal
-          startTime={selectedSlot.start}
-          endTime={selectedSlot.end}
+          startTime={selectionStartDate}
+          endTime={selectionEndDate}
           isMember={isMember}
-          onClose={() => setSelectedSlot(null)}
+          onClose={() => setShowModal(false)}
           onBooked={handleBooked}
         />
       )}
@@ -163,33 +273,37 @@ export default function WeekCalendar({
 
 function SlotCell({
   status,
+  selected,
   sport,
   reason,
   onClick,
 }: {
   status: string;
+  selected?: boolean;
   sport?: string;
   reason?: string;
   onClick?: () => void;
 }) {
   if (status === "PAST") {
-    return <div className="w-full h-full rounded-lg bg-gray-50" />;
+    return <div className="w-full h-full rounded bg-gray-50" />;
   }
   if (status === "FREE") {
     return (
       <button
         onClick={onClick}
-        className="w-full h-full rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-100 transition-colors text-teal-700 text-xs font-semibold"
-        title="Prosto - klikni za rezervacijo"
-      >
-        Prosto
-      </button>
+        className={`w-full h-full rounded transition-colors text-[10px] font-semibold ${
+          selected
+            ? "bg-accent border border-accent-dark text-white"
+            : "bg-teal-50 hover:bg-teal-100 border border-teal-100 text-teal-700"
+        }`}
+        title={selected ? "Izbrano - klikni za odizbiro" : "Prosto - klikni za izbiro"}
+      />
     );
   }
   if (status === "CONFIRMED") {
     return (
       <div
-        className="w-full h-full rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center text-base"
+        className="w-full h-full rounded bg-accent/15 border border-accent/30 flex items-center justify-center text-sm"
         title="Zasedeno"
       >
         {sport ? SPORT_ICONS[sport] : "🔒"}
@@ -199,7 +313,7 @@ function SlotCell({
   if (status === "PENDING") {
     return (
       <div
-        className="w-full h-full rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-xs font-semibold text-amber-700"
+        className="w-full h-full rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-semibold text-amber-700"
         title="Čaka na potrditev"
       >
         V obravnavi
@@ -208,7 +322,7 @@ function SlotCell({
   }
   return (
     <div
-      className="w-full h-full rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-ink-dim"
+      className="w-full h-full rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] text-ink-dim"
       title={reason ?? "Blokirano"}
     >
       Zasedeno
@@ -219,6 +333,7 @@ function SlotCell({
 function Legend() {
   const items: [string, string][] = [
     ["bg-teal-50 border-teal-200", "Prosto"],
+    ["bg-accent border-accent-dark", "Izbrano"],
     ["bg-accent/15 border-accent/30", "Zasedeno"],
     ["bg-amber-50 border-amber-200", "V obravnavi"],
     ["bg-gray-100 border-gray-200", "Zasedeno"],

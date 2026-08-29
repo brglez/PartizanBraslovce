@@ -6,6 +6,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { assertValidBlockedSlot } from "@/lib/bookings";
+import { updateHallHours } from "@/lib/settings";
 
 async function requireAdmin() {
   const session = await auth();
@@ -212,4 +213,33 @@ export async function removeMember(userId: string) {
   }
   await prisma.user.delete({ where: { id: userId, role: "MEMBER" } });
   revalidatePath("/admin/clani");
+}
+
+const hallHoursSchema = z
+  .object({
+    openingHour: z.coerce.number().int().min(0).max(23),
+    closingHour: z.coerce.number().int().min(1).max(24),
+  })
+  .refine((v) => v.closingHour > v.openingHour, {
+    message: "Ura zaprtja mora biti za uro odprtja.",
+  });
+
+export type HallHoursState = { error?: string } | undefined;
+
+export async function updateHallHoursAction(
+  _prev: HallHoursState,
+  formData: FormData
+): Promise<HallHoursState> {
+  await requireAdmin();
+  const parsed = hallHoursSchema.safeParse({
+    openingHour: formData.get("openingHour"),
+    closingHour: formData.get("closingHour"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
+  }
+  await updateHallHours(parsed.data.openingHour, parsed.data.closingHour);
+  revalidatePath("/admin/koledar");
+  revalidatePath("/");
+  return undefined;
 }

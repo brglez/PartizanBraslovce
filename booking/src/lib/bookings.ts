@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { OPENING_HOUR, CLOSING_HOUR, SLOT_MINUTES } from "@/lib/config";
+import { SLOT_MINUTES } from "@/lib/config";
+import { getHallHours } from "@/lib/settings";
 import { z } from "zod";
 
 export const bookingInputSchema = z
@@ -27,7 +28,7 @@ function isAlignedToSlot(date: Date) {
   );
 }
 
-export function assertWithinOperatingHours(startTime: Date, endTime: Date) {
+export async function assertWithinOperatingHours(startTime: Date, endTime: Date) {
   const durationMinutes = (endTime.getTime() - startTime.getTime()) / 60000;
   if (durationMinutes <= 0 || durationMinutes % SLOT_MINUTES !== 0) {
     throw new BookingValidationError(`Termin mora trajati v korakih po ${SLOT_MINUTES} minut.`);
@@ -38,13 +39,14 @@ export function assertWithinOperatingHours(startTime: Date, endTime: Date) {
   if (startTime.getTime() < Date.now()) {
     throw new BookingValidationError("Ni mogoče rezervirati termina v preteklosti.");
   }
-  // Local-time minute-of-day check based on the server's configured hall hours.
+  const { openingHour, closingHour } = await getHallHours();
+  // Local-time minute-of-day check based on the configured hall hours.
   const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
   const endMinutesRaw = endTime.getHours() * 60 + endTime.getMinutes();
   const endMinutes = endMinutesRaw === 0 ? 24 * 60 : endMinutesRaw;
-  if (startMinutes < OPENING_HOUR * 60 || endMinutes > CLOSING_HOUR * 60) {
+  if (startMinutes < openingHour * 60 || endMinutes > closingHour * 60) {
     throw new BookingValidationError(
-      `Termini so mogoči med ${OPENING_HOUR}:00 in ${CLOSING_HOUR}:00.`
+      `Termini so mogoči med ${openingHour}:00 in ${closingHour}:00.`
     );
   }
 }
@@ -86,7 +88,7 @@ export async function createBooking(
 ) {
   const startTime = new Date(input.startTime);
   const endTime = new Date(input.endTime);
-  assertWithinOperatingHours(startTime, endTime);
+  await assertWithinOperatingHours(startTime, endTime);
 
   const isMember = actor !== null;
   if (!isMember) {

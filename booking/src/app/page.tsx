@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import WeekCalendar from "@/components/WeekCalendar";
 import { HALL_NAME, PRICE_PER_HOUR_EUR } from "@/lib/config";
+import { getHallHours } from "@/lib/settings";
 
 export default async function Home() {
   const session = await auth();
@@ -11,7 +12,8 @@ export default async function Home() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = addDays(weekStart, 7);
 
-  const [bookings, blockedSlots] = await Promise.all([
+  const [{ openingHour, closingHour }, bookings, blockedSlots] = await Promise.all([
+    getHallHours(),
     prisma.booking.findMany({
       where: {
         status: { in: ["PENDING", "CONFIRMED"] },
@@ -37,8 +39,8 @@ export default async function Home() {
           Rezerviraj svoj termin 🏸🏐🏀
         </h1>
         <p className="text-ink-dim max-w-xl">
-          Izberi prost termin v koledarju spodaj. Cena najema je {PRICE_PER_HOUR_EUR}&nbsp;€/uro
-          za celo dvorano.{" "}
+          Poklikaj proste termine v koledarju spodaj (najmanj eno uro) in spodaj potrdi z
+          &bdquo;Rezerviraj&ldquo;. Cena najema je {PRICE_PER_HOUR_EUR}&nbsp;€/uro za celo dvorano.{" "}
           {isMember
             ? "Kot prijavljen član je tvoja rezervacija potrjena takoj."
             : "Rezervacije gostov potrdi upravitelj po e-pošti ali telefonu."}
@@ -47,6 +49,8 @@ export default async function Home() {
 
       <WeekCalendar
         isMember={isMember}
+        openingHour={openingHour}
+        closingHour={closingHour}
         initialWeekStart={weekStart.toISOString()}
         initialBookings={bookings.map((b) => ({
           ...b,

@@ -2,9 +2,10 @@
 
 export const HALL_NAME = "Telovadnica Partizan Braslovče";
 
-// Opening hours, 24h format, same every day for now.
-export const OPENING_HOUR = 8;
-export const CLOSING_HOUR = 22;
+// Fallback opening hours, 24h format, used only until an admin sets real
+// ones in the database (see lib/settings.ts) or if that row is missing.
+export const DEFAULT_OPENING_HOUR = 8;
+export const DEFAULT_CLOSING_HOUR = 22;
 
 // One booking occupies the entire hall for this many minutes.
 export const SLOT_MINUTES = 30;

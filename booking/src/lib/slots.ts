@@ -1,4 +1,4 @@
-import { OPENING_HOUR, CLOSING_HOUR, SLOT_MINUTES } from "@/lib/config";
+import { SLOT_MINUTES } from "@/lib/config";
 
 export type SlotStatus = "FREE" | "PENDING" | "CONFIRMED" | "BLOCKED" | "PAST";
 
@@ -24,9 +24,9 @@ export interface DaySlot {
 
 // Every bookable slot start (e.g. 8:00, 8:30, 9:00, ...) between opening and
 // closing time, spaced SLOT_MINUTES apart.
-export function slotsOfDay(): DaySlot[] {
+export function slotsOfDay(openingHour: number, closingHour: number): DaySlot[] {
   const slots: DaySlot[] = [];
-  for (let m = OPENING_HOUR * 60; m < CLOSING_HOUR * 60; m += SLOT_MINUTES) {
+  for (let m = openingHour * 60; m < closingHour * 60; m += SLOT_MINUTES) {
     slots.push({ hour: Math.floor(m / 60), minute: m % 60 });
   }
   return slots;
