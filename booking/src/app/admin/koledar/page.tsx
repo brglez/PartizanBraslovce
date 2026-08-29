@@ -77,12 +77,18 @@ export default async function AdminCalendarPage() {
     <div className="space-y-10">
       <div>
         <h2 className="font-head text-lg font-bold mb-3">Pregled koledarja</h2>
+        <p className="text-xs text-ink-dim mb-2">
+          Klikni na zaseden/blokiran termin, da ga sprostiš (velja tudi za posamezen termin
+          znotraj ponavljajoče blokade).
+        </p>
         <WeekCalendar
           readOnly
           isMember={false}
           openingHour={hallHours.openingHour}
           closingHour={hallHours.closingHour}
           closedWeekdays={hallHours.closedWeekdays}
+          onCancelBooking={cancelBooking}
+          onDeleteBlocked={deleteBlockedSlot}
           initialWeekStart={weekStart.toISOString()}
           initialBookings={weekBookings.map((b) => ({
             ...b,

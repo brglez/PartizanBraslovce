@@ -18,6 +18,10 @@ interface Props {
   // Admin overview: no click-to-select/booking, just a read-only view of
   // the week with block reasons visible.
   readOnly?: boolean;
+  // Admin-only: when provided, occupied cells become clickable to free up
+  // that single slot - even one occurrence of a recurring blocked series.
+  onCancelBooking?: (bookingId: string) => Promise<void>;
+  onDeleteBlocked?: (blockedId: string) => Promise<void>;
 }
 
 interface Selection {
@@ -45,6 +49,8 @@ export default function WeekCalendar({
   initialBookings,
   initialBlockedSlots,
   readOnly = false,
+  onCancelBooking,
+  onDeleteBlocked,
 }: Props) {
   const [weekStart, setWeekStart] = useState(() => new Date(initialWeekStart));
   const [bookings, setBookings] = useState<CalendarBooking[]>(initialBookings);
@@ -52,6 +58,7 @@ export default function WeekCalendar({
   const [loading, setLoading] = useState(false);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [freeing, setFreeing] = useState(false);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -124,6 +131,29 @@ export default function WeekCalendar({
     if (!selection || !sameDay(selection.day, day)) return false;
     const t = hour * 60 + minute;
     return t >= selection.startMinutes && t < selection.endMinutes;
+  }
+
+  async function handleFreeBooking(bookingId: string) {
+    if (!onCancelBooking || freeing) return;
+    if (!window.confirm("Preklicati to rezervacijo in sprostiti termin?")) return;
+    setFreeing(true);
+    await onCancelBooking(bookingId);
+    await loadWeek(weekStart);
+    setFreeing(false);
+  }
+
+  async function handleFreeBlocked(blockedId: string) {
+    if (!onDeleteBlocked || freeing) return;
+    if (
+      !window.confirm(
+        "Odstraniti to blokado in sprostiti termin? (Če gre za ponavljajočo blokado, se odstrani samo ta en termin, ostali ostanejo.)"
+      )
+    )
+      return;
+    setFreeing(true);
+    await onDeleteBlocked(blockedId);
+    await loadWeek(weekStart);
+    setFreeing(false);
   }
 
   function handleBooked() {
@@ -230,6 +260,13 @@ export default function WeekCalendar({
                             ? () => handleSlotClick(day, hour, minute)
                             : undefined
                         }
+                        onFree={
+                          (status === "CONFIRMED" || status === "PENDING") && booking && onCancelBooking
+                            ? () => handleFreeBooking(booking.id)
+                            : status === "BLOCKED" && blocked && onDeleteBlocked
+                              ? () => handleFreeBlocked(blocked.id)
+                              : undefined
+                        }
                       />
                     </td>
                   );
@@ -291,6 +328,7 @@ function SlotCell({
   reason,
   readOnly,
   onClick,
+  onFree,
 }: {
   status: string;
   selected?: boolean;
@@ -298,6 +336,7 @@ function SlotCell({
   reason?: string;
   readOnly?: boolean;
   onClick?: () => void;
+  onFree?: () => void;
 }) {
   if (status === "PAST") {
     return <div className="w-full h-full rounded bg-gray-50" />;
@@ -322,6 +361,17 @@ function SlotCell({
     );
   }
   if (status === "CONFIRMED") {
+    if (onFree) {
+      return (
+        <button
+          onClick={onFree}
+          className="w-full h-full rounded bg-accent/15 border border-accent/30 hover:bg-red-100 hover:border-red-300 flex items-center justify-center text-sm transition-colors"
+          title="Klikni za preklic rezervacije in sprostitev termina"
+        >
+          {sport ? SPORT_ICONS[sport] : "🔒"}
+        </button>
+      );
+    }
     return (
       <div
         className="w-full h-full rounded bg-accent/15 border border-accent/30 flex items-center justify-center text-sm"
@@ -332,6 +382,17 @@ function SlotCell({
     );
   }
   if (status === "PENDING") {
+    if (onFree) {
+      return (
+        <button
+          onClick={onFree}
+          className="w-full h-full rounded bg-amber-50 border border-amber-200 hover:bg-red-100 hover:border-red-300 flex items-center justify-center text-[10px] font-semibold text-amber-700 transition-colors"
+          title="Klikni za preklic rezervacije in sprostitev termina"
+        >
+          V obravnavi
+        </button>
+      );
+    }
     return (
       <div
         className="w-full h-full rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-[10px] font-semibold text-amber-700"
@@ -339,6 +400,17 @@ function SlotCell({
       >
         V obravnavi
       </div>
+    );
+  }
+  if (onFree) {
+    return (
+      <button
+        onClick={onFree}
+        className="w-full h-full rounded bg-gray-100 border border-gray-200 hover:bg-red-100 hover:border-red-300 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] leading-tight text-ink-dim transition-colors"
+        title={(reason ?? "Zasedeno") + " - klikni za odstranitev blokade in sprostitev termina"}
+      >
+        <span className="line-clamp-2">{reason ?? "Zasedeno"}</span>
+      </button>
     );
   }
   return (
