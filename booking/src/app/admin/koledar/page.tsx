@@ -2,7 +2,7 @@ import { startOfWeek, addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { SPORT_ICONS, SPORT_LABELS } from "@/lib/config";
 import { getHallHours } from "@/lib/settings";
-import { cancelBooking, deleteBlockedSlot, deleteBlockedSlotSeries } from "../actions";
+import { approveBooking, rejectBooking, cancelBooking, deleteBlockedSlot, deleteBlockedSlotSeries } from "../actions";
 import BlockSlotForm from "./BlockSlotForm";
 import RecurringBlockForm from "./RecurringBlockForm";
 import HallHoursForm from "./HallHoursForm";
@@ -188,7 +188,9 @@ export default async function AdminCalendarPage() {
             {bookings.map((b) => (
               <div
                 key={b.id}
-                className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-white p-3 text-sm"
+                className={`flex flex-wrap items-center gap-3 rounded-xl border p-3 text-sm ${
+                  b.status === "PENDING" ? "border-amber-200 bg-amber-50" : "border-border bg-white"
+                }`}
               >
                 <span className="text-xl">{SPORT_ICONS[b.sport]}</span>
                 <span className="font-semibold">{fmt(b.startTime)}</span>
@@ -203,11 +205,29 @@ export default async function AdminCalendarPage() {
                   {b.status === "CONFIRMED" ? "Potrjeno" : "V obravnavi"}
                 </span>
                 <span className="text-ink-dim">
-                  {b.user ? `${b.user.name} (član)` : `${b.guestName} (gost)`}
+                  {b.user
+                    ? `${b.user.name} (član)`
+                    : `${b.guestName} (gost) · ${b.guestEmail} · ${b.guestPhone}`}
                 </span>
-                <form action={cancelBooking.bind(null, b.id)} className="ml-auto">
-                  <button className="text-red-600 hover:underline font-semibold">Prekliči</button>
-                </form>
+                {b.notes && (
+                  <span className="text-ink-dim italic w-full sm:w-auto">&ldquo;{b.notes}&rdquo;</span>
+                )}
+                <div className="ml-auto flex gap-3">
+                  {b.status === "PENDING" ? (
+                    <>
+                      <form action={approveBooking.bind(null, b.id)}>
+                        <button className="text-teal-700 hover:underline font-semibold">Potrdi</button>
+                      </form>
+                      <form action={rejectBooking.bind(null, b.id)}>
+                        <button className="text-red-600 hover:underline font-semibold">Zavrni</button>
+                      </form>
+                    </>
+                  ) : (
+                    <form action={cancelBooking.bind(null, b.id)}>
+                      <button className="text-red-600 hover:underline font-semibold">Prekliči</button>
+                    </form>
+                  )}
+                </div>
               </div>
             ))}
           </div>
