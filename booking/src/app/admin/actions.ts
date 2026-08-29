@@ -168,6 +168,7 @@ const memberSchema = z.object({
   email: z.email(),
   phone: z.string().trim().max(30).optional(),
   password: z.string().min(8).max(72),
+  role: z.enum(["MEMBER", "ADMIN"]).default("MEMBER"),
 });
 
 export type AddMemberState = { error?: string } | undefined;
@@ -182,6 +183,7 @@ export async function addMember(
     email: formData.get("email"),
     phone: formData.get("phone") || undefined,
     password: formData.get("password"),
+    role: formData.get("role") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
@@ -199,7 +201,7 @@ export async function addMember(
       email: parsed.data.email,
       phone: parsed.data.phone,
       passwordHash,
-      role: "MEMBER",
+      role: parsed.data.role,
     },
   });
   revalidatePath("/admin/clani");

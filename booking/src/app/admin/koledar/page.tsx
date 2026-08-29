@@ -1,3 +1,4 @@
+import { startOfWeek, addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { SPORT_ICONS, SPORT_LABELS } from "@/lib/config";
 import { getHallHours } from "@/lib/settings";
@@ -5,6 +6,7 @@ import { cancelBooking, deleteBlockedSlot, deleteBlockedSlotSeries } from "../ac
 import BlockSlotForm from "./BlockSlotForm";
 import RecurringBlockForm from "./RecurringBlockForm";
 import HallHoursForm from "./HallHoursForm";
+import WeekCalendar from "@/components/WeekCalendar";
 
 function fmt(date: Date) {
   return date.toLocaleString("sl-SI", {
@@ -29,7 +31,10 @@ function fmtWeekday(date: Date) {
 }
 
 export default async function AdminCalendarPage() {
-  const [hallHours, bookings, blockedSlots] = await Promise.all([
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekEnd = addDays(weekStart, 7);
+
+  const [hallHours, bookings, blockedSlots, weekBookings, weekBlockedSlots] = await Promise.all([
     getHallHours(),
     prisma.booking.findMany({
       where: {
@@ -44,6 +49,19 @@ export default async function AdminCalendarPage() {
       where: { endTime: { gte: new Date() } },
       orderBy: { startTime: "asc" },
     }),
+    prisma.booking.findMany({
+      where: {
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startTime: { lt: weekEnd },
+        endTime: { gt: weekStart },
+      },
+      select: { id: true, sport: true, startTime: true, endTime: true, status: true },
+      orderBy: { startTime: "asc" },
+    }),
+    prisma.blockedSlot.findMany({
+      where: { startTime: { lt: weekEnd }, endTime: { gt: weekStart } },
+      select: { id: true, startTime: true, endTime: true, reason: true },
+    }),
   ]);
 
   const singleBlocks = blockedSlots.filter((b) => !b.seriesId);
@@ -57,6 +75,29 @@ export default async function AdminCalendarPage() {
 
   return (
     <div className="space-y-10">
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Pregled koledarja</h2>
+        <WeekCalendar
+          readOnly
+          isMember={false}
+          openingHour={hallHours.openingHour}
+          closingHour={hallHours.closingHour}
+          closedWeekdays={hallHours.closedWeekdays}
+          initialWeekStart={weekStart.toISOString()}
+          initialBookings={weekBookings.map((b) => ({
+            ...b,
+            status: b.status as "PENDING" | "CONFIRMED",
+            startTime: b.startTime.toISOString(),
+            endTime: b.endTime.toISOString(),
+          }))}
+          initialBlockedSlots={weekBlockedSlots.map((b) => ({
+            ...b,
+            startTime: b.startTime.toISOString(),
+            endTime: b.endTime.toISOString(),
+          }))}
+        />
+      </div>
+
       <div>
         <h2 className="font-head text-lg font-bold mb-3">Čas obratovanja</h2>
         <div className="rounded-xl border border-border bg-white p-4 shadow-sm">

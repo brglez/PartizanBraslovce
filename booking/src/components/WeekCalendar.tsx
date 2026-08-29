@@ -15,6 +15,9 @@ interface Props {
   initialWeekStart: string;
   initialBookings: CalendarBooking[];
   initialBlockedSlots: CalendarBlockedSlot[];
+  // Admin overview: no click-to-select/booking, just a read-only view of
+  // the week with block reasons visible.
+  readOnly?: boolean;
 }
 
 interface Selection {
@@ -41,6 +44,7 @@ export default function WeekCalendar({
   initialWeekStart,
   initialBookings,
   initialBlockedSlots,
+  readOnly = false,
 }: Props) {
   const [weekStart, setWeekStart] = useState(() => new Date(initialWeekStart));
   const [bookings, setBookings] = useState<CalendarBooking[]>(initialBookings);
@@ -78,6 +82,7 @@ export default function WeekCalendar({
   }
 
   function handleSlotClick(day: Date, hour: number, minute: number) {
+    if (readOnly) return;
     const t = hour * 60 + minute;
 
     if (!selection || !sameDay(selection.day, day)) {
@@ -219,8 +224,11 @@ export default function WeekCalendar({
                         selected={selected}
                         sport={booking?.sport}
                         reason={blocked?.reason}
+                        readOnly={readOnly}
                         onClick={
-                          status === "FREE" ? () => handleSlotClick(day, hour, minute) : undefined
+                          status === "FREE" && !readOnly
+                            ? () => handleSlotClick(day, hour, minute)
+                            : undefined
                         }
                       />
                     </td>
@@ -281,12 +289,14 @@ function SlotCell({
   selected,
   sport,
   reason,
+  readOnly,
   onClick,
 }: {
   status: string;
   selected?: boolean;
   sport?: string;
   reason?: string;
+  readOnly?: boolean;
   onClick?: () => void;
 }) {
   if (status === "PAST") {
@@ -296,6 +306,9 @@ function SlotCell({
     return <div className="w-full h-full rounded bg-gray-50" title="Zaprto" />;
   }
   if (status === "FREE") {
+    if (readOnly) {
+      return <div className="w-full h-full rounded bg-teal-50 border border-teal-100" title="Prosto" />;
+    }
     return (
       <button
         onClick={onClick}
@@ -330,10 +343,10 @@ function SlotCell({
   }
   return (
     <div
-      className="w-full h-full rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] text-ink-dim"
-      title={reason ?? "Blokirano"}
+      className="w-full h-full rounded bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] leading-tight text-ink-dim"
+      title={reason ?? "Zasedeno"}
     >
-      Zasedeno
+      <span className="line-clamp-2">{reason ?? "Zasedeno"}</span>
     </div>
   );
 }
