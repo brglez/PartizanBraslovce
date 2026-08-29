@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
   const start = new Date(parsed.data.start);
   const end = new Date(parsed.data.end);
 
-  const [bookings, blockedSlots] = await Promise.all([
+  // Only admins get to see who a reservation is for - keep it anonymous on
+  // the public feed.
+  const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN";
+
+  const [bookingRows, blockedSlots] = await Promise.all([
     prisma.booking.findMany({
       where: {
         status: { in: ["PENDING", "CONFIRMED"] },
@@ -38,6 +43,8 @@ export async function GET(request: NextRequest) {
         startTime: true,
         endTime: true,
         status: true,
+        guestName: isAdmin,
+        user: isAdmin ? { select: { name: true } } : false,
       },
       orderBy: { startTime: "asc" },
     }),
@@ -49,6 +56,22 @@ export async function GET(request: NextRequest) {
       select: { id: true, startTime: true, endTime: true, reason: true },
     }),
   ]);
+
+  const bookings = bookingRows.map((b) => {
+    const withNames = b as typeof b & { guestName?: string | null; user?: { name: string } | null };
+    return {
+      id: b.id,
+      sport: b.sport,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      status: b.status,
+      bookedBy: isAdmin
+        ? withNames.user
+          ? `${withNames.user.name} (član)`
+          : `${withNames.guestName} (gost)`
+        : undefined,
+    };
+  });
 
   return Response.json({ bookings, blockedSlots });
 }
