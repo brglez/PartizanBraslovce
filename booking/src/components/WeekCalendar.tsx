@@ -71,7 +71,8 @@ export default function WeekCalendar({
     setLoading(true);
     const end = addDays(start, 7);
     const res = await fetch(
-      `/api/bookings?start=${start.toISOString()}&end=${end.toISOString()}`
+      `/api/bookings?start=${start.toISOString()}&end=${end.toISOString()}`,
+      { cache: "no-store" }
     );
     if (res.ok) {
       const data = await res.json();

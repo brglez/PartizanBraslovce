@@ -9,6 +9,10 @@ import {
   BookingValidationError,
 } from "@/lib/bookings";
 
+// Who's on the calendar (and whether guest names are included) depends on
+// the caller's session - never cache this response.
+export const dynamic = "force-dynamic";
+
 const rangeSchema = z.object({
   start: z.iso.datetime(),
   end: z.iso.datetime(),
@@ -73,7 +77,10 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  return Response.json({ bookings, blockedSlots });
+  return Response.json(
+    { bookings, blockedSlots },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
 
 export async function POST(request: NextRequest) {

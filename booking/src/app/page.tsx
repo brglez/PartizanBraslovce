@@ -5,6 +5,10 @@ import WeekCalendar from "@/components/WeekCalendar";
 import { HALL_NAME, PRICE_PER_HOUR_EUR } from "@/lib/config";
 import { getHallHours } from "@/lib/settings";
 
+// Bookings/availability change constantly and the response differs by
+// session (admin vs. not) - never statically cache this page.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const session = await auth();
   const isMember = !!session?.user;
