@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const session = await auth();
   const isMember = !!session?.user;
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = addDays(weekStart, 7);
@@ -64,9 +65,10 @@ export default async function Home() {
           endTime: b.endTime.toISOString(),
         }))}
         initialBlockedSlots={blockedSlots.map((b) => ({
-          ...b,
+          id: b.id,
           startTime: b.startTime.toISOString(),
           endTime: b.endTime.toISOString(),
+          reason: isAdmin ? b.reason : undefined,
         }))}
       />
     </div>

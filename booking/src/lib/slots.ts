@@ -19,7 +19,10 @@ export interface CalendarBlockedSlot {
   id: string;
   startTime: string;
   endTime: string;
-  reason: string;
+  // Only populated on the admin calendar feed (not the public one) - the
+  // reason can contain names/private info (e.g. who a recurring block is
+  // for), so the public just sees a generic "occupied" state.
+  reason?: string;
 }
 
 export interface DaySlot {

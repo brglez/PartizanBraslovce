@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN";
 
-  const [bookingRows, blockedSlots] = await Promise.all([
+  const [bookingRows, blockedSlotRows] = await Promise.all([
     prisma.booking.findMany({
       where: {
         status: { in: ["PENDING", "CONFIRMED"] },
@@ -60,6 +60,13 @@ export async function GET(request: NextRequest) {
       select: { id: true, startTime: true, endTime: true, reason: true },
     }),
   ]);
+
+  const blockedSlots = blockedSlotRows.map((b) => ({
+    id: b.id,
+    startTime: b.startTime,
+    endTime: b.endTime,
+    reason: isAdmin ? b.reason : undefined,
+  }));
 
   const bookings = bookingRows.map((b) => {
     const withNames = b as typeof b & { guestName?: string | null; user?: { name: string } | null };
