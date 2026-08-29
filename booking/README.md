@@ -61,12 +61,12 @@ aplikacijo in bazo ne gre prek javnega interneta.
 3. **Base Directory**: `booking` — pove Coolify, naj obravnava `booking/`
    kot koren projekta (tam so `package.json`, lockfile, `next.config.ts`).
 4. **Port**: `3000` (privzet za `next start`).
-5. **Domains**: vpiši ciljno domeno, npr. `rezervacije.brglez.si` — Coolify
+5. **Domains**: vpiši ciljno domeno, npr. `rezervacije.partizan-braslovce.si` — Coolify
    samodejno uredi HTTPS (Let's Encrypt) ob prvem uspešnem deployu.
 6. **Okoljske spremenljivke** (Environment Variables v Coolify):
    - `DATABASE_URL` – interna povezava iz koraka 1
    - `AUTH_SECRET` – `openssl rand -base64 32`
-   - `AUTH_URL` – končni URL (npr. `https://rezervacije.brglez.si`)
+   - `AUTH_URL` – končni URL (npr. `https://rezervacije.partizan-braslovce.si`)
    - `ADMIN_NOTIFICATION_EMAIL`
 7. **Deploy**. Nixpacks ob `npm install` samodejno požene `prisma generate`
    (skript `postinstall` v `package.json`), nato `npm run build` in
@@ -88,16 +88,17 @@ poženeš ista dva ukaza, nato javni dostop do baze v Coolify spet izklopiš.
 
 ### 4. DNS
 
-V Hetzner DNS Console dodaj `A` zapis za `rezervacije.brglez.si` (ali
+V Hetzner DNS Console dodaj `A` zapis za `rezervacije.partizan-braslovce.si` (ali
 izbrano poddomeno) na IP strežnika (`23.88.110.159`). Ko se razveljavi,
 Coolify samodejno izda certifikat.
 
 ### 5. Po postavitvi
 
-Posodobi placeholder povezave v glavnem `index.html` (trenutno kažejo na
-`https://rezervacije.brglez.si/partizanbraslovce/`) na pravi URL in odstrani
-začasno pasico "Predogled nove rezervacijske platforme" (označena s
-komentarjem `<!-- ZAČASNO: ... -->`).
+Povezave v glavnem `index.html` že kažejo na `https://rezervacije.partizan-braslovce.si/`
+— ni jih treba spreminjati, če se poddomena ujema s tem, kar je nastavljeno
+v koraku 4. Odstrani še začasno pasico "Predogled nove rezervacijske
+platforme" (označena s komentarjem `<!-- ZAČASNO: ... -->` na vrhu
+`index.html`).
 
 ### Alternativa: Vercel + Neon/Supabase
 

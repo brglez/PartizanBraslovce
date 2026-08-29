@@ -77,7 +77,7 @@ export default async function RootLayout({
         <footer className="bg-navy text-text-dim text-center text-sm py-6">
           <p>
             &copy; {new Date().getFullYear()} Partizan Braslovče &middot;{" "}
-            <a href="https://brglez.si/partizanbraslovce/" className="text-accent hover:underline">
+            <a href="https://partizan-braslovce.si/" className="text-accent hover:underline">
               Nazaj na glavno stran
             </a>
           </p>
