@@ -1,4 +1,4 @@
-import { OPENING_HOUR, CLOSING_HOUR } from "@/lib/config";
+import { OPENING_HOUR, CLOSING_HOUR, SLOT_MINUTES } from "@/lib/config";
 
 export type SlotStatus = "FREE" | "PENDING" | "CONFIRMED" | "BLOCKED" | "PAST";
 
@@ -17,10 +17,19 @@ export interface CalendarBlockedSlot {
   reason: string;
 }
 
-export function hoursOfDay(): number[] {
-  const hours: number[] = [];
-  for (let h = OPENING_HOUR; h < CLOSING_HOUR; h++) hours.push(h);
-  return hours;
+export interface DaySlot {
+  hour: number;
+  minute: number;
+}
+
+// Every bookable slot start (e.g. 8:00, 8:30, 9:00, ...) between opening and
+// closing time, spaced SLOT_MINUTES apart.
+export function slotsOfDay(): DaySlot[] {
+  const slots: DaySlot[] = [];
+  for (let m = OPENING_HOUR * 60; m < CLOSING_HOUR * 60; m += SLOT_MINUTES) {
+    slots.push({ hour: Math.floor(m / 60), minute: m % 60 });
+  }
+  return slots;
 }
 
 export function slotStatusAt(

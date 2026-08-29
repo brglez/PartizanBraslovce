@@ -21,7 +21,7 @@ export class BookingOverlapError extends Error {}
 
 function isAlignedToSlot(date: Date) {
   return (
-    date.getUTCMinutes() === 0 &&
+    date.getUTCMinutes() % SLOT_MINUTES === 0 &&
     date.getUTCSeconds() === 0 &&
     date.getUTCMilliseconds() === 0
   );
@@ -30,18 +30,19 @@ function isAlignedToSlot(date: Date) {
 export function assertWithinOperatingHours(startTime: Date, endTime: Date) {
   const durationMinutes = (endTime.getTime() - startTime.getTime()) / 60000;
   if (durationMinutes <= 0 || durationMinutes % SLOT_MINUTES !== 0) {
-    throw new BookingValidationError("Termin mora trajati celo število ur.");
+    throw new BookingValidationError(`Termin mora trajati v korakih po ${SLOT_MINUTES} minut.`);
   }
   if (!isAlignedToSlot(startTime) || !isAlignedToSlot(endTime)) {
-    throw new BookingValidationError("Termin se mora začeti ob polni uri.");
+    throw new BookingValidationError("Termin se mora začeti ob pravem terminu.");
   }
   if (startTime.getTime() < Date.now()) {
     throw new BookingValidationError("Ni mogoče rezervirati termina v preteklosti.");
   }
-  // Local-time hour check based on the server's configured hall hours.
-  const startHour = startTime.getHours();
-  const endHour = endTime.getHours() === 0 ? 24 : endTime.getHours();
-  if (startHour < OPENING_HOUR || endHour > CLOSING_HOUR) {
+  // Local-time minute-of-day check based on the server's configured hall hours.
+  const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+  const endMinutesRaw = endTime.getHours() * 60 + endTime.getMinutes();
+  const endMinutes = endMinutesRaw === 0 ? 24 * 60 : endMinutesRaw;
+  if (startMinutes < OPENING_HOUR * 60 || endMinutes > CLOSING_HOUR * 60) {
     throw new BookingValidationError(
       `Termini so mogoči med ${OPENING_HOUR}:00 in ${CLOSING_HOUR}:00.`
     );

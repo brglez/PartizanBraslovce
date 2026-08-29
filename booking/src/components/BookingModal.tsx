@@ -28,10 +28,17 @@ export default function BookingModal({ startTime, endTime, isMember, onClose, on
     day: "numeric",
     month: "long",
   });
-  const timeLabel = `${startTime.getHours().toString().padStart(2, "0")}:00–${endTime
-    .getHours()
-    .toString()
-    .padStart(2, "0")}:00`;
+  function fmtTime(d: Date) {
+    return `${d.getHours().toString().padStart(2, "0")}:${d
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  }
+  const timeLabel = `${fmtTime(startTime)}–${fmtTime(endTime)}`;
+  const durationHours = (endTime.getTime() - startTime.getTime()) / 3600000;
+  const price = (PRICE_PER_HOUR_EUR * durationHours).toLocaleString("sl-SI", {
+    maximumFractionDigits: 2,
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,7 +103,7 @@ export default function BookingModal({ startTime, endTime, isMember, onClose, on
           <form onSubmit={handleSubmit}>
             <h3 className="font-head text-xl font-bold mb-1">Rezervacija termina</h3>
             <p className="text-ink-dim mb-5 capitalize">
-              {dateLabel} &middot; {timeLabel} &middot; {PRICE_PER_HOUR_EUR}&nbsp;€
+              {dateLabel} &middot; {timeLabel} &middot; {price}&nbsp;€
             </p>
 
             <label className="block text-sm font-semibold mb-1.5">Šport</label>

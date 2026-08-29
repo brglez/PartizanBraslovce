@@ -3,8 +3,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { addDays, addWeeks, startOfWeek, format } from "date-fns";
 import { sl } from "date-fns/locale";
-import { hoursOfDay, slotStatusAt, type CalendarBooking, type CalendarBlockedSlot } from "@/lib/slots";
-import { SPORT_ICONS } from "@/lib/config";
+import { slotsOfDay, slotStatusAt, type CalendarBooking, type CalendarBlockedSlot } from "@/lib/slots";
+import { SPORT_ICONS, SLOT_MINUTES } from "@/lib/config";
 import BookingModal from "./BookingModal";
 
 interface Props {
@@ -30,7 +30,7 @@ export default function WeekCalendar({
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
     [weekStart]
   );
-  const hours = useMemo(() => hoursOfDay(), []);
+  const slots = useMemo(() => slotsOfDay(), []);
   const thisWeekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
 
   const loadWeek = useCallback(async (start: Date) => {
@@ -53,11 +53,10 @@ export default function WeekCalendar({
     loadWeek(next);
   }
 
-  function handleSlotClick(day: Date, hour: number) {
+  function handleSlotClick(day: Date, hour: number, minute: number) {
     const start = new Date(day);
-    start.setHours(hour, 0, 0, 0);
-    const end = new Date(start);
-    end.setHours(hour + 1, 0, 0, 0);
+    start.setHours(hour, minute, 0, 0);
+    const end = new Date(start.getTime() + SLOT_MINUTES * 60000);
     setSelectedSlot({ start, end });
   }
 
@@ -111,16 +110,15 @@ export default function WeekCalendar({
             </tr>
           </thead>
           <tbody>
-            {hours.map((hour) => (
-              <tr key={hour}>
+            {slots.map(({ hour, minute }) => (
+              <tr key={`${hour}:${minute}`}>
                 <td className="w-16 border-b border-border p-2 text-xs text-ink-dim text-right pr-3">
-                  {hour}:00
+                  {hour}:{minute.toString().padStart(2, "0")}
                 </td>
                 {days.map((day) => {
                   const slotStart = new Date(day);
-                  slotStart.setHours(hour, 0, 0, 0);
-                  const slotEnd = new Date(day);
-                  slotEnd.setHours(hour + 1, 0, 0, 0);
+                  slotStart.setHours(hour, minute, 0, 0);
+                  const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60000);
                   const { status, booking, blocked } = slotStatusAt(
                     slotStart,
                     slotEnd,
@@ -130,7 +128,7 @@ export default function WeekCalendar({
 
                   return (
                     <td
-                      key={day.toISOString() + hour}
+                      key={day.toISOString() + hour + ":" + minute}
                       className="border-b border-l border-border p-1 h-12 text-center align-middle"
                     >
                       <SlotCell
@@ -138,7 +136,7 @@ export default function WeekCalendar({
                         sport={booking?.sport}
                         reason={blocked?.reason}
                         onClick={
-                          status === "FREE" ? () => handleSlotClick(day, hour) : undefined
+                          status === "FREE" ? () => handleSlotClick(day, hour, minute) : undefined
                         }
                       />
                     </td>
@@ -213,7 +211,7 @@ function SlotCell({
       className="w-full h-full rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-ink-dim"
       title={reason ?? "Blokirano"}
     >
-      Zaprto
+      Zasedeno
     </div>
   );
 }
@@ -223,12 +221,12 @@ function Legend() {
     ["bg-teal-50 border-teal-200", "Prosto"],
     ["bg-accent/15 border-accent/30", "Zasedeno"],
     ["bg-amber-50 border-amber-200", "V obravnavi"],
-    ["bg-gray-100 border-gray-200", "Zaprto"],
+    ["bg-gray-100 border-gray-200", "Zasedeno"],
   ];
   return (
     <div className="flex items-center gap-3 text-xs text-ink-dim flex-wrap">
       {items.map(([cls, label]) => (
-        <span key={label} className="flex items-center gap-1.5">
+        <span key={cls} className="flex items-center gap-1.5">
           <span className={`inline-block w-3 h-3 rounded border ${cls}`} />
           {label}
         </span>

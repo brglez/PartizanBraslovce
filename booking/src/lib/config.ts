@@ -6,8 +6,8 @@ export const HALL_NAME = "Telovadnica Partizan Braslovče";
 export const OPENING_HOUR = 8;
 export const CLOSING_HOUR = 22;
 
-// All bookings are whole-hour slots; one booking occupies the entire hall.
-export const SLOT_MINUTES = 60;
+// One booking occupies the entire hall for this many minutes.
+export const SLOT_MINUTES = 30;
 
 export const PRICE_PER_HOUR_EUR = 15;
 
