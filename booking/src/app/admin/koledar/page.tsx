@@ -116,97 +116,6 @@ export default async function AdminCalendarPage() {
       </div>
 
       <div>
-        <h2 className="font-head text-lg font-bold mb-3">Čas obratovanja</h2>
-        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-          <HallHoursForm
-            openingHour={hallHours.openingHour}
-            closingHour={hallHours.closingHour}
-            closedWeekdays={hallHours.closedWeekdays}
-          />
-        </div>
-      </div>
-
-      <div>
-        <h2 className="font-head text-lg font-bold mb-3">Blokiraj termin</h2>
-        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-          <BlockSlotForm />
-        </div>
-      </div>
-
-      <div>
-        <h2 className="font-head text-lg font-bold mb-3">Ponavljajoča blokada (npr. cela sezona)</h2>
-        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-          <RecurringBlockForm />
-        </div>
-      </div>
-
-      {seriesGroups.size > 0 && (
-        <div>
-          <h2 className="font-head text-lg font-bold mb-3">Ponavljajoče blokade</h2>
-          <div className="space-y-2">
-            {[...seriesGroups.entries()].map(([seriesId, group]) => {
-              const first = group[0];
-              return (
-                <div
-                  key={seriesId}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-border bg-white p-3 text-sm"
-                >
-                  <span>
-                    Vsak <strong className="capitalize">{fmtWeekday(first.startTime)}</strong>{" "}
-                    {fmtTime(first.startTime)}–{fmtTime(first.endTime)}
-                    {" · "}
-                    <span className="text-ink-dim">{first.reason}</span>
-                    {" · "}
-                    <span className="text-ink-dim">
-                      {group.length} termin(ov), do {fmtDate(group[group.length - 1].startTime)}
-                    </span>
-                  </span>
-                  <form action={deleteBlockedSlotSeries.bind(null, seriesId)}>
-                    <ConfirmSubmitButton
-                      confirmMessage={`Odstraniti celotno serijo (${group.length} terminov)?`}
-                      pendingLabel="Odstranjujem ..."
-                      className="text-red-600 hover:underline font-semibold disabled:opacity-60"
-                    >
-                      Odstrani celotno serijo
-                    </ConfirmSubmitButton>
-                  </form>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {singleBlocks.length > 0 && (
-        <div>
-          <h2 className="font-head text-lg font-bold mb-3">Blokirani termini</h2>
-          <div className="space-y-2">
-            {singleBlocks.map((b) => (
-              <div
-                key={b.id}
-                className="flex items-center justify-between gap-4 rounded-xl border border-border bg-white p-3 text-sm"
-              >
-                <span>
-                  {fmt(b.startTime)} – {fmtTime(b.endTime)}
-                  {" · "}
-                  <span className="text-ink-dim">{b.reason}</span>
-                </span>
-                <form action={deleteBlockedSlot.bind(null, b.id)}>
-                  <ConfirmSubmitButton
-                    confirmMessage="Odstraniti to blokado?"
-                    pendingLabel="Odstranjujem ..."
-                    className="text-red-600 hover:underline font-semibold disabled:opacity-60"
-                  >
-                    Odstrani
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div>
         <h2 className="font-head text-lg font-bold mb-3">Prihajajoči termini</h2>
         {bookings.length === 0 ? (
           <p className="text-ink-dim text-sm">Ni prihajajočih terminov.</p>
@@ -278,6 +187,97 @@ export default async function AdminCalendarPage() {
           </div>
         )}
       </div>
+
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Čas obratovanja</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <HallHoursForm
+            openingHour={hallHours.openingHour}
+            closingHour={hallHours.closingHour}
+            closedWeekdays={hallHours.closedWeekdays}
+          />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Blokiraj termin</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <BlockSlotForm />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Ponavljajoč termin (npr. cela sezona)</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <RecurringBlockForm />
+        </div>
+      </div>
+
+      {seriesGroups.size > 0 && (
+        <div>
+          <h2 className="font-head text-lg font-bold mb-3">Ponavljajoči termini</h2>
+          <div className="space-y-2">
+            {[...seriesGroups.entries()].map(([seriesId, group]) => {
+              const first = group[0];
+              return (
+                <div
+                  key={seriesId}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-border bg-white p-3 text-sm"
+                >
+                  <span>
+                    Vsak <strong className="capitalize">{fmtWeekday(first.startTime)}</strong>{" "}
+                    {fmtTime(first.startTime)}–{fmtTime(first.endTime)}
+                    {" · "}
+                    <span className="text-ink-dim">{first.reason}</span>
+                    {" · "}
+                    <span className="text-ink-dim">
+                      {group.length} termin(ov), do {fmtDate(group[group.length - 1].startTime)}
+                    </span>
+                  </span>
+                  <form action={deleteBlockedSlotSeries.bind(null, seriesId)}>
+                    <ConfirmSubmitButton
+                      confirmMessage={`Odstraniti celotno serijo (${group.length} terminov)?`}
+                      pendingLabel="Odstranjujem ..."
+                      className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                    >
+                      Odstrani celotno serijo
+                    </ConfirmSubmitButton>
+                  </form>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {singleBlocks.length > 0 && (
+        <div>
+          <h2 className="font-head text-lg font-bold mb-3">Blokirani termini</h2>
+          <div className="space-y-2">
+            {singleBlocks.map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center justify-between gap-4 rounded-xl border border-border bg-white p-3 text-sm"
+              >
+                <span>
+                  {fmt(b.startTime)} – {fmtTime(b.endTime)}
+                  {" · "}
+                  <span className="text-ink-dim">{b.reason}</span>
+                </span>
+                <form action={deleteBlockedSlot.bind(null, b.id)}>
+                  <ConfirmSubmitButton
+                    confirmMessage="Odstraniti to blokado?"
+                    pendingLabel="Odstranjujem ..."
+                    className="text-red-600 hover:underline font-semibold disabled:opacity-60"
+                  >
+                    Odstrani
+                  </ConfirmSubmitButton>
+                </form>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
