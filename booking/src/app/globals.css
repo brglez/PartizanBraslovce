@@ -25,6 +25,8 @@
   --color-sand: var(--sand);
   --color-ink: var(--ink);
   --color-ink-dim: var(--ink-dim);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
   --color-border: var(--border);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
