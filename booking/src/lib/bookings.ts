@@ -39,7 +39,10 @@ export async function assertWithinOperatingHours(startTime: Date, endTime: Date)
   if (startTime.getTime() < Date.now()) {
     throw new BookingValidationError("Ni mogoče rezervirati termina v preteklosti.");
   }
-  const { openingHour, closingHour } = await getHallHours();
+  const { openingHour, closingHour, closedWeekdays } = await getHallHours();
+  if (closedWeekdays.includes(startTime.getDay())) {
+    throw new BookingValidationError("Ob tem dnevu je telovadnica zaprta.");
+  }
   // Local-time minute-of-day check based on the configured hall hours.
   const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
   const endMinutesRaw = endTime.getHours() * 60 + endTime.getMinutes();

@@ -1,6 +1,8 @@
 import { SLOT_MINUTES } from "@/lib/config";
 
-export type SlotStatus = "FREE" | "PENDING" | "CONFIRMED" | "BLOCKED" | "PAST";
+// "CLOSED" is never returned by slotStatusAt itself - it's applied by the
+// caller when a whole day is marked closed in the hall's operating hours.
+export type SlotStatus = "FREE" | "PENDING" | "CONFIRMED" | "BLOCKED" | "PAST" | "CLOSED";
 
 export interface CalendarBooking {
   id: string;

@@ -11,6 +11,7 @@ interface Props {
   isMember: boolean;
   openingHour: number;
   closingHour: number;
+  closedWeekdays: number[];
   initialWeekStart: string;
   initialBookings: CalendarBooking[];
   initialBlockedSlots: CalendarBlockedSlot[];
@@ -36,6 +37,7 @@ export default function WeekCalendar({
   isMember,
   openingHour,
   closingHour,
+  closedWeekdays,
   initialWeekStart,
   initialBookings,
   initialBlockedSlots,
@@ -196,12 +198,15 @@ export default function WeekCalendar({
                   const slotStart = new Date(day);
                   slotStart.setHours(hour, minute, 0, 0);
                   const slotEnd = new Date(slotStart.getTime() + SLOT_MINUTES * 60000);
-                  const { status, booking, blocked } = slotStatusAt(
+                  let { status, booking, blocked } = slotStatusAt(
                     slotStart,
                     slotEnd,
                     bookings,
                     blockedSlots
                   );
+                  if (status === "FREE" && closedWeekdays.includes(day.getDay())) {
+                    status = "CLOSED";
+                  }
                   const selected = status === "FREE" && isSelected(day, hour, minute);
 
                   return (
@@ -286,6 +291,9 @@ function SlotCell({
 }) {
   if (status === "PAST") {
     return <div className="w-full h-full rounded bg-gray-50" />;
+  }
+  if (status === "CLOSED") {
+    return <div className="w-full h-full rounded bg-gray-50" title="Zaprto" />;
   }
   if (status === "FREE") {
     return (

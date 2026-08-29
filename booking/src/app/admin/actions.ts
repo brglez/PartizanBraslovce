@@ -219,6 +219,7 @@ const hallHoursSchema = z
   .object({
     openingHour: z.coerce.number().int().min(0).max(23),
     closingHour: z.coerce.number().int().min(1).max(24),
+    closedWeekdays: z.array(z.coerce.number().int().min(0).max(6)),
   })
   .refine((v) => v.closingHour > v.openingHour, {
     message: "Ura zaprtja mora biti za uro odprtja.",
@@ -234,11 +235,12 @@ export async function updateHallHoursAction(
   const parsed = hallHoursSchema.safeParse({
     openingHour: formData.get("openingHour"),
     closingHour: formData.get("closingHour"),
+    closedWeekdays: formData.getAll("closedWeekdays"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
   }
-  await updateHallHours(parsed.data.openingHour, parsed.data.closingHour);
+  await updateHallHours(parsed.data.openingHour, parsed.data.closingHour, parsed.data.closedWeekdays);
   revalidatePath("/admin/koledar");
   revalidatePath("/");
   return undefined;

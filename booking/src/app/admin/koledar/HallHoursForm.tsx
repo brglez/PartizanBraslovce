@@ -3,17 +3,31 @@
 import { useActionState } from "react";
 import { updateHallHoursAction } from "../actions";
 
+// value = JS Date.getDay() (0=Sunday..6=Saturday), listed Monday-first for
+// a natural week display.
+const WEEKDAYS = [
+  { value: 1, label: "Pon" },
+  { value: 2, label: "Tor" },
+  { value: 3, label: "Sre" },
+  { value: 4, label: "Čet" },
+  { value: 5, label: "Pet" },
+  { value: 6, label: "Sob" },
+  { value: 0, label: "Ned" },
+];
+
 export default function HallHoursForm({
   openingHour,
   closingHour,
+  closedWeekdays,
 }: {
   openingHour: number;
   closingHour: number;
+  closedWeekdays: number[];
 }) {
   const [state, formAction, pending] = useActionState(updateHallHoursAction, undefined);
 
   return (
-    <form action={formAction} className="flex flex-wrap items-end gap-3">
+    <form action={formAction} className="flex flex-wrap items-end gap-5">
       <div>
         <label className="block text-xs font-semibold mb-1" htmlFor="openingHour">
           Odprto od
@@ -48,6 +62,27 @@ export default function HallHoursForm({
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <span className="block text-xs font-semibold mb-1">Zaprti dnevi</span>
+        <div className="flex gap-2">
+          {WEEKDAYS.map((d) => (
+            <label
+              key={d.value}
+              className="flex flex-col items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-ink-dim has-[:checked]:border-accent has-[:checked]:bg-orange-50 has-[:checked]:text-accent-dark cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                name="closedWeekdays"
+                value={d.value}
+                defaultChecked={closedWeekdays.includes(d.value)}
+                className="accent-accent"
+              />
+              {d.label}
+            </label>
+          ))}
+        </div>
       </div>
 
       <button

@@ -72,10 +72,12 @@ model Booking {
 // Singleton (id is always 1) holding the hall's operating hours, editable by
 // an admin instead of being hard-coded.
 model HallSettings {
-  id          Int      @id @default(1)
-  openingHour Int      @default(8)
-  closingHour Int      @default(22)
-  updatedAt   DateTime @updatedAt
+  id             Int      @id @default(1)
+  openingHour    Int      @default(8)
+  closingHour    Int      @default(22)
+  // Days the hall doesn't operate at all, 0=Sunday..6=Saturday (JS Date.getDay()).
+  closedWeekdays Int[]    @default([])
+  updatedAt      DateTime @updatedAt
 }
 
 // Admin-blocked periods (maintenance, tournaments, closures) - no booking may overlap these.

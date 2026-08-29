@@ -12,7 +12,7 @@ export default async function Home() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = addDays(weekStart, 7);
 
-  const [{ openingHour, closingHour }, bookings, blockedSlots] = await Promise.all([
+  const [{ openingHour, closingHour, closedWeekdays }, bookings, blockedSlots] = await Promise.all([
     getHallHours(),
     prisma.booking.findMany({
       where: {
@@ -51,6 +51,7 @@ export default async function Home() {
         isMember={isMember}
         openingHour={openingHour}
         closingHour={closingHour}
+        closedWeekdays={closedWeekdays}
         initialWeekStart={weekStart.toISOString()}
         initialBookings={bookings.map((b) => ({
           ...b,

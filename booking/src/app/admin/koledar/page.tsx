@@ -60,7 +60,11 @@ export default async function AdminCalendarPage() {
       <div>
         <h2 className="font-head text-lg font-bold mb-3">Čas obratovanja</h2>
         <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-          <HallHoursForm openingHour={hallHours.openingHour} closingHour={hallHours.closingHour} />
+          <HallHoursForm
+            openingHour={hallHours.openingHour}
+            closingHour={hallHours.closingHour}
+            closedWeekdays={hallHours.closedWeekdays}
+          />
         </div>
       </div>
 
