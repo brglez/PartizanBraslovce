@@ -38,28 +38,73 @@ npm run dev                # http://localhost:3000
 
 `AUTH_SECRET` generiraš z `openssl rand -base64 32`.
 
-## Produkcijska postavitev (Vercel + gostovana Postgres baza)
+## Produkcijska postavitev (Hetzner + Coolify)
 
-1. **Baza**: ustvari brezplačno PostgreSQL bazo, npr. na
-   [Neon](https://neon.tech) ali [Supabase](https://supabase.com). Kopiraj
-   connection string (`DATABASE_URL`).
-2. **Vercel**: uvozi ta repozitorij, nastavi **Root Directory** na `booking/`.
-3. Nastavi okoljske spremenljivke v Vercelu:
-   - `DATABASE_URL` – iz koraka 1
+Gostuje se na obstoječem strežniku za manjše projekte: Hetzner Cloud CX23
+(Nürnberg), upravljanem prek [Coolify](https://coolify.io) (self-hosted
+PaaS). Repozitorij je monorepo — aplikacija je v podmapi `booking/`, zato je
+ključna nastavitev **Base Directory**.
+
+### 1. Postgres v Coolify
+
+V Coolify: **Project → New Resource → Database → PostgreSQL**. Coolify
+ustvari servis in poda interno povezovalno nizko (`DATABASE_URL`) — uporabi
+**interni** hostname (npr. `postgres-xyz`), ne javnega IP-ja, da promet med
+aplikacijo in bazo ne gre prek javnega interneta.
+
+### 2. Next.js aplikacija v Coolify
+
+1. **Project → New Resource → Application → Git repository**, izberi ta
+   repozitorij in vejo.
+2. **Build Pack**: `Nixpacks` (samodejno prepozna Next.js/npm; ni potreben
+   ročni Dockerfile).
+3. **Base Directory**: `booking` — pove Coolify, naj obravnava `booking/`
+   kot koren projekta (tam so `package.json`, lockfile, `next.config.ts`).
+4. **Port**: `3000` (privzet za `next start`).
+5. **Domains**: vpiši ciljno domeno, npr. `rezervacije.brglez.si` — Coolify
+   samodejno uredi HTTPS (Let's Encrypt) ob prvem uspešnem deployu.
+6. **Okoljske spremenljivke** (Environment Variables v Coolify):
+   - `DATABASE_URL` – interna povezava iz koraka 1
    - `AUTH_SECRET` – `openssl rand -base64 32`
-   - `AUTH_URL` – končna URL naslova (npr. `https://rezervacije.brglez.si`)
+   - `AUTH_URL` – končni URL (npr. `https://rezervacije.brglez.si`)
    - `ADMIN_NOTIFICATION_EMAIL`
-4. Po prvem deployu enkratno poženi migracije in seed admin računa (lokalno,
-   z `DATABASE_URL` produkcijske baze v `.env`, ali prek Vercel CLI):
-   ```bash
-   npm run db:deploy
-   SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... npm run db:seed
-   ```
-5. **Domena**: priporočeno je gostovanje na poddomeni, npr.
-   `rezervacije.brglez.si`, ker gre za ločeno Next.js aplikacijo (glavna
-   stran `brglez.si/partizanbraslovce/` ostane statična). Po nastavitvi
-   domene posodobi povezave v glavnem `index.html` (trenutno kažejo na
-   `https://rezervacije.brglez.si/partizanbraslovce/` kot placeholder).
+7. **Deploy**. Nixpacks ob `npm install` samodejno požene `prisma generate`
+   (skript `postinstall` v `package.json`), nato `npm run build` in
+   `npm run start`.
+
+### 3. Migracije in seed admin računa (enkratno, po prvem deployu)
+
+V Coolify odpri aplikacijo → **Terminal** (poganja ukaz znotraj running
+kontejnerja) in zaženi:
+
+```bash
+npm run db:deploy
+SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... npm run db:seed
+```
+
+Če Coolify terminal ni na voljo, isto narediš lokalno: v `.env` začasno
+vstaviš **javno** povezavo do Postgresa (Coolify jo pokaže poleg interne),
+poženeš ista dva ukaza, nato javni dostop do baze v Coolify spet izklopiš.
+
+### 4. DNS
+
+V Hetzner DNS Console dodaj `A` zapis za `rezervacije.brglez.si` (ali
+izbrano poddomeno) na IP strežnika (`23.88.110.159`). Ko se razveljavi,
+Coolify samodejno izda certifikat.
+
+### 5. Po postavitvi
+
+Posodobi placeholder povezave v glavnem `index.html` (trenutno kažejo na
+`https://rezervacije.brglez.si/partizanbraslovce/`) na pravi URL in odstrani
+začasno pasico "Predogled nove rezervacijske platforme" (označena s
+komentarjem `<!-- ZAČASNO: ... -->`).
+
+### Alternativa: Vercel + Neon/Supabase
+
+Če se raje uporabi upravljana platforma namesto lastnega strežnika, aplikacija
+teče tudi na Vercelu brez sprememb — nastavi **Root Directory** na `booking/`,
+poveži gostovano Postgres bazo (npr. [Neon](https://neon.tech)) in enake
+okoljske spremenljivke kot zgoraj.
 
 ## Upravljanje članov
 
