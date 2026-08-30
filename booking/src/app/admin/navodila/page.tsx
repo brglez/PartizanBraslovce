@@ -69,7 +69,7 @@ export default function AdminNavodilaPage() {
 
       <Section title="4. Kako dodam trajen (ponavljajoč se) termin">
         <p>
-          Na <Path>/admin/koledar</Path> pod &bdquo;Ponavljajoča blokada (npr. cela sezona)&ldquo;:
+          Na <Path>/admin/koledar</Path> pod &bdquo;Ponavljajoč termin (npr. cela sezona)&ldquo;:
         </p>
         <ol className="list-decimal pl-5 space-y-1">
           <li>Izberi dan v tednu (npr. četrtek)</li>
@@ -79,6 +79,10 @@ export default function AdminNavodilaPage() {
           <li>Preveri predogled &bdquo;Blokiraj N termin(ov)&ldquo; in potrdi</li>
         </ol>
         <p>Serija se v seznamu prikaže združeno, z enim gumbom &bdquo;Odstrani celotno serijo&ldquo;.</p>
+        <p className="text-ink-dim italic">
+          Razlog blokade (npr. ime osebe za redni najem) vidi samo prijavljen administrator &ndash;
+          na javnem koledarju je prikazano samo generično &bdquo;Zasedeno&ldquo;.
+        </p>
       </Section>
 
       <Section title="5. Kako prekličem trajen termin samo za en dan">
