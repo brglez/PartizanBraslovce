@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { assertValidBlockedSlot } from "@/lib/bookings";
 import { updateHallHours } from "@/lib/settings";
-import { notifyAdmins, fmtRange } from "@/lib/notify";
+import { notifyAdmins, notifyGuestDecision, fmtRange } from "@/lib/notify";
 
 async function requireAdmin() {
   const session = await auth();
@@ -30,6 +30,16 @@ export async function approveBooking(bookingId: string) {
     "Rezervacija potrjena",
     `${session.user.name} je potrdil(a) rezervacijo (${booking.guestName ?? "gost"}) za ${fmtRange(booking.startTime, booking.endTime)}.`
   );
+  if (booking.guestEmail) {
+    await notifyGuestDecision(
+      booking.guestEmail,
+      booking.guestName ?? "gost",
+      booking.sport,
+      booking.startTime,
+      booking.endTime,
+      "CONFIRMED"
+    );
+  }
 }
 
 export async function rejectBooking(bookingId: string) {
@@ -45,6 +55,16 @@ export async function rejectBooking(bookingId: string) {
     "Rezervacija zavrnjena",
     `${session.user.name} je zavrnil(a) rezervacijo (${booking.guestName ?? "gost"}) za ${fmtRange(booking.startTime, booking.endTime)}.`
   );
+  if (booking.guestEmail) {
+    await notifyGuestDecision(
+      booking.guestEmail,
+      booking.guestName ?? "gost",
+      booking.sport,
+      booking.startTime,
+      booking.endTime,
+      "REJECTED"
+    );
+  }
 }
 
 export async function cancelBooking(bookingId: string) {

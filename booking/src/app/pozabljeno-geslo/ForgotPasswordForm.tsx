@@ -1,11 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
-import { loginAction } from "./actions";
+import { requestPasswordReset } from "./actions";
 
-export default function LoginForm() {
-  const [state, formAction, pending] = useActionState(loginAction, undefined);
+export default function ForgotPasswordForm() {
+  const [state, formAction, pending] = useActionState(requestPasswordReset, undefined);
+
+  if (state?.message) {
+    return <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">{state.message}</p>;
+  }
 
   return (
     <form action={formAction} className="space-y-4">
@@ -22,24 +25,6 @@ export default function LoginForm() {
           placeholder="ime@example.com"
         />
       </div>
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <label htmlFor="password" className="block text-sm font-semibold">
-            Geslo
-          </label>
-          <Link href="/pozabljeno-geslo" className="text-xs text-accent font-semibold hover:underline">
-            Pozabljeno geslo?
-          </Link>
-        </div>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          className="w-full rounded-lg border border-border bg-[#fafbfd] px-3 py-2.5 text-sm focus:outline-none focus:border-accent"
-          placeholder="••••••••"
-        />
-      </div>
       {state?.error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
       )}
@@ -48,7 +33,7 @@ export default function LoginForm() {
         disabled={pending}
         className="w-full rounded-full bg-accent py-2.5 font-semibold text-white hover:bg-accent-dark transition-colors disabled:opacity-60"
       >
-        {pending ? "Prijavljam ..." : "Prijava"}
+        {pending ? "Pošiljam ..." : "Pošlji povezavo za ponastavitev"}
       </button>
     </form>
   );

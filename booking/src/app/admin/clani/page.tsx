@@ -17,8 +17,8 @@ export default async function AdminMembersPage() {
           <AddMemberForm />
         </div>
         <p className="text-xs text-ink-dim mt-2">
-          Uporabnik si nato geslo lahko spremeni sam po prijavi (funkcija sledi kasneje) ali pa mu
-          ga posredujete po varni poti.
+          Uporabnik si nato geslo lahko sam ponastavi prek &bdquo;Pozabljeno geslo?&ldquo; na prijavni
+          strani (potrebuje e-pošto), ali pa mu ga posredujete po varni poti.
         </p>
       </div>
 

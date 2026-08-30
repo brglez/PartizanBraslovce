@@ -30,14 +30,28 @@ enum BookingStatus {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  name         String
-  phone        String?
-  role         Role      @default(MEMBER)
-  createdAt    DateTime  @default(now())
-  bookings     Booking[]
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  name                String
+  phone               String?
+  role                Role                 @default(MEMBER)
+  createdAt           DateTime             @default(now())
+  bookings            Booking[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+// Single-use, time-limited token e-mailed to a member so they can set a
+// new password without an admin's help.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // A single hourly slot in the telovadnica. One booking = the whole hall.

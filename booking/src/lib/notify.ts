@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
+import { HALL_NAME, SPORT_LABELS } from "@/lib/config";
 
 export function fmtRange(startTime: Date, endTime: Date) {
   const date = startTime.toLocaleString("sl-SI", {
@@ -28,5 +29,31 @@ export async function notifyAdmins(subject: string, text: string) {
     );
   } catch (err) {
     console.error("notifyAdmins failed:", err);
+  }
+}
+
+// Tells a guest (no account) whether their reservation request was
+// confirmed or rejected.
+export async function notifyGuestDecision(
+  guestEmail: string,
+  guestName: string,
+  sport: string,
+  startTime: Date,
+  endTime: Date,
+  decision: "CONFIRMED" | "REJECTED"
+) {
+  try {
+    const when = fmtRange(startTime, endTime);
+    const subject =
+      decision === "CONFIRMED"
+        ? `Rezervacija potrjena – ${when}`
+        : `Rezervacija zavrnjena – ${when}`;
+    const text =
+      decision === "CONFIRMED"
+        ? `Pozdravljen(a) ${guestName},\n\nTvoja rezervacija (${SPORT_LABELS[sport] ?? sport}) za ${when} je potrjena.\n\nLep pozdrav,\n${HALL_NAME}`
+        : `Pozdravljen(a) ${guestName},\n\nŽal tvoje rezervacije (${SPORT_LABELS[sport] ?? sport}) za ${when} nismo mogli potrditi. Za več informacij nas kontaktiraj.\n\nLep pozdrav,\n${HALL_NAME}`;
+    await sendMail(guestEmail, subject, text);
+  } catch (err) {
+    console.error("notifyGuestDecision failed:", err);
   }
 }
