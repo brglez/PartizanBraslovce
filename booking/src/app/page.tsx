@@ -2,7 +2,7 @@ import { startOfWeek, addDays } from "date-fns";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import WeekCalendar from "@/components/WeekCalendar";
-import { HALL_NAME, PRICE_PER_HOUR_EUR } from "@/lib/config";
+import { HALL_NAME } from "@/lib/config";
 import { getHallHours } from "@/lib/settings";
 
 // Bookings/availability change constantly and the response differs by
@@ -30,7 +30,7 @@ export default async function Home() {
     }),
     prisma.blockedSlot.findMany({
       where: { startTime: { lt: weekEnd }, endTime: { gt: weekStart } },
-      select: { id: true, startTime: true, endTime: true, reason: true },
+      select: { id: true, startTime: true, endTime: true, reason: true, sport: true },
     }),
   ]);
 
@@ -45,7 +45,8 @@ export default async function Home() {
         </h1>
         <p className="text-ink-dim max-w-xl">
           Poklikaj proste termine v koledarju spodaj (najmanj eno uro) in spodaj potrdi z
-          &bdquo;Rezerviraj&ldquo;. Cena najema je {PRICE_PER_HOUR_EUR}&nbsp;€/uro za celo dvorano.{" "}
+          &bdquo;Rezerviraj&ldquo;. Cena najema je odvisna od dejavnosti (16&ndash;23&nbsp;€/uro), izbereš
+          jo ob rezervaciji.{" "}
           {isMember
             ? "Kot prijavljen član je tvoja rezervacija potrjena takoj."
             : "Rezervacije gostov potrdi upravitelj po e-pošti ali telefonu."}
@@ -69,6 +70,7 @@ export default async function Home() {
           startTime: b.startTime.toISOString(),
           endTime: b.endTime.toISOString(),
           reason: isAdmin ? b.reason : undefined,
+          sport: b.sport ?? undefined,
         }))}
       />
     </div>

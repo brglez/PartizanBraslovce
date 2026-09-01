@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poročilo o opravljenem delu – 1. 9. 2026</title>
+<style>
+  :root {
+    --accent: #e57c1c;
+    --ink: #1a1a1a;
+    --ink-dim: #666;
+    --border: #ddd;
+    --bg-soft: #f7f7f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 28px 70px;
+    line-height: 1.55;
+    font-size: 14px;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 2px; }
+  .subtitle { color: var(--ink-dim); margin-bottom: 24px; font-size: .9rem; }
+  h2 {
+    font-size: 1.05rem;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 4px;
+    margin-top: 32px;
+  }
+  h3 { font-size: .95rem; margin: 16px 0 6px; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .tag {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 6px;
+  }
+  .tag-web { background: #e0edff; color: #2a5db0; }
+  .tag-app { background: #e6f6ec; color: #1e8a4c; }
+  .tag-doc { background: #fdeee0; color: var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 4px;
+    font-size: .88rem;
+  }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+  th { background: var(--bg-soft); }
+  td.num { text-align: right; }
+  .note {
+    background: var(--bg-soft);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin-top: 20px;
+    font-size: .88rem;
+  }
+  .toolbar { position: fixed; top: 16px; right: 16px; }
+  .toolbar button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  @media print {
+    .toolbar { display: none; }
+    body { padding: 0 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar"><button onclick="window.print()">Natisni / shrani PDF</button></div>
+
+<h1>Poročilo o opravljenem delu</h1>
+<p class="subtitle">Partizan Braslovče &ndash; spletna stran in rezervacijska platforma &middot; 1. 9. 2026</p>
+
+<h2>1. Nov razčlenjen cenik telovadnice</h2>
+<p><span class="tag tag-web">Spletna stran</span><span class="tag tag-app">Rezervacijska platforma</span></p>
+<p>Prejšnja enotna cena (15 €/uro za vse dejavnosti) je zamenjana z ločeno ceno po dejavnosti,
+usklajeno na spletni strani in v rezervacijski platformi:</p>
+<table>
+  <thead><tr><th>Dejavnost</th><th class="num">Cena / uro</th></tr></thead>
+  <tbody>
+    <tr><td>Badminton</td><td class="num">16 €</td></tr>
+    <tr><td>Rekreacija odbojka</td><td class="num">21 €</td></tr>
+    <tr><td>Košarka</td><td class="num">21 €</td></tr>
+    <tr><td>Rekreacija skupine</td><td class="num">23 €</td></tr>
+    <tr><td>Sedeča odbojka (ob petkih)</td><td class="num">23 €</td></tr>
+  </tbody>
+</table>
+<p>Cena za izbrano dejavnost se v rezervacijski platformi zdaj samodejno izračuna in prikaže
+uporabniku, še preden odda rezervacijo.</p>
+
+<h2>2. Otroška praznovanja</h2>
+<p><span class="tag tag-web">Spletna stran</span></p>
+<p>Na spletni strani je dodana nova ponudba &ndash; najem prostora za otroška praznovanja, cena po
+dogovoru, s povezavo na kontaktni obrazec.</p>
+
+<h2>3. Ikona dejavnosti pri fiksnih (rednih) terminih</h2>
+<p><span class="tag tag-app">Rezervacijska platforma</span></p>
+<p>Pri rednih/blokiranih terminih v koledarju se zdaj poleg oznake &bdquo;Zasedeno&ldquo; prikaže tudi
+ikona dejavnosti (npr. 🏸, 🏐, 🏀). Tako naslednji ali predhodni najemnik takoj vidi, za katero
+dejavnost gre, in mu ni treba po nepotrebnem pospravljati/postavljati opreme (npr. mreže), če gre
+za isto dejavnost.</p>
+
+<h2>4. Skupine članov in samodejno obveščanje</h2>
+<p><span class="tag tag-app">Rezervacijska platforma</span></p>
+<ul>
+  <li>Administrator lahko ustvari skupine (npr. &bdquo;Četrtkova odbojka&ldquo;) in vsakega člana uvrsti v
+    eno ali več skupin.</li>
+  <li>Redni tedenski termin v koledarju se lahko poveže s skupino &ndash; ko je tak termin dodan ali
+    v celoti odpovedan, se članom te skupine (ki imajo vklopljeno obveščanje) samodejno pošlje
+    e-pošta.</li>
+  <li>Vsak član ima svojo nastavitev &bdquo;Obveščaj po e-pošti&ldquo; (vklop/izklop), ki jo ureja
+    administrator na strani s člani.</li>
+</ul>
+
+<h2>5. Obveščanje o sprostitvi termina</h2>
+<p><span class="tag tag-app">Rezervacijska platforma</span></p>
+<p>Nova funkcija administratorju omogoča, da vsem članom z vklopljenim obveščanjem pošlje e-pošto
+o terminu, ki se je sprostil (npr. po odpovedi) &ndash; z lastnim sporočilom in neposredno povezavo
+do rezervacijske platforme, da lahko zainteresirani termin čim lažje zasedejo.</p>
+
+<h2>6. Pogodba za skupine (najem po sezonah)</h2>
+<p><span class="tag tag-doc">Dokument</span></p>
+<p>Pripravljena je tiskljiva predloga pogodbe za redni najem s strani skupin/klubov, ločena na dva
+plačilna dela sezone (1. 9.&ndash;31. 12. in 1. 1.&ndash;31. 5.). Predloga sama izračuna število
+terminov in ceno za oba dela sezone glede na izbran dan, uro in dejavnost &ndash; pri izračunu
+samodejno izloči državne praznike in dela proste dneve (takrat je dvorana zaprta).</p>
+
+<h2>7. Posodobljena navodila</h2>
+<p><span class="tag tag-app">Rezervacijska platforma</span></p>
+<p>Navodila za administratorje (<code>/admin/navodila</code>) in za člane/goste
+(<code>/navodila</code>) na rezervacijski platformi so dopolnjena z opisom vseh zgornjih novosti.</p>
+
+<div class="note">
+  <strong>Za objavo v živo:</strong> spremembe v rezervacijski platformi vključujejo spremembo
+  podatkovne baze (nove vrste dejavnosti, skupine, obveščanje) &ndash; pred naslednjim redeployem je
+  treba na produkcijski bazi zagnati migracijo (<code>npm run db:deploy</code>), sicer se aplikacija
+  ne zažene pravilno.
+</div>
+
+</body>
+</html>

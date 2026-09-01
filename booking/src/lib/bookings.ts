@@ -6,7 +6,14 @@ import { z } from "zod";
 
 export const bookingInputSchema = z
   .object({
-    sport: z.enum(["BADMINTON", "ODBOJKA", "KOSARKA", "DRUGO"]),
+    sport: z.enum([
+      "BADMINTON",
+      "ODBOJKA",
+      "KOSARKA",
+      "REKREACIJA_SKUPINE",
+      "SEDECA_ODBOJKA",
+      "DRUGO",
+    ]),
     startTime: z.iso.datetime(),
     endTime: z.iso.datetime(),
     guestName: z.string().trim().min(2).max(120).optional(),

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { createBlockedSlot } from "../actions";
+import { SPORT_LABELS } from "@/lib/config";
 
 // datetime-local inputs give a naive local string; convert to a real ISO
 // (UTC) instant client-side using the admin's own browser timezone before
@@ -19,7 +20,7 @@ export default function BlockSlotForm() {
   const [endLocal, setEndLocal] = useState("");
 
   return (
-    <form action={formAction} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+    <form action={formAction} className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
       <input type="hidden" name="startTime" value={toIso(startLocal)} />
       <input type="hidden" name="endTime" value={toIso(endLocal)} />
       <div className="sm:col-span-1">
@@ -60,6 +61,24 @@ export default function BlockSlotForm() {
           className="w-full rounded-lg border border-border bg-[#fafbfd] px-3 py-2 text-sm"
         />
       </div>
+      <div className="sm:col-span-1">
+        <label className="block text-xs font-semibold mb-1" htmlFor="blockSport">
+          Dejavnost (za ikono)
+        </label>
+        <select
+          id="blockSport"
+          name="sport"
+          defaultValue=""
+          className="w-full rounded-lg border border-border bg-[#fafbfd] px-3 py-2 text-sm"
+        >
+          <option value="">Brez ikone</option>
+          {Object.entries(SPORT_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
       <button
         type="submit"
         disabled={pending}
@@ -68,7 +87,7 @@ export default function BlockSlotForm() {
         {pending ? "Dodajam ..." : "Blokiraj termin"}
       </button>
       {state?.error && (
-        <p className="sm:col-span-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="sm:col-span-5 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}
         </p>
       )}

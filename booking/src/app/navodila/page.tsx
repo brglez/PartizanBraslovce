@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PRICE_PER_HOUR_EUR } from "@/lib/config";
+import { SPORT_LABELS, SPORT_PRICE_PER_HOUR_EUR } from "@/lib/config";
 
 export default function NavodilaPage() {
   return (
@@ -23,9 +23,17 @@ export default function NavodilaPage() {
             <li>Izberi šport in po želji dodaj opombo, nato oddaj.</li>
           </ol>
           <p className="text-sm text-ink-dim mt-3">
-            Rezervacija je <strong>takoj potrjena</strong>. Cena najema je {PRICE_PER_HOUR_EUR}&nbsp;€/uro za
-            celo dvorano.
+            Rezervacija je <strong>takoj potrjena</strong>. Cena najema je odvisna od izbrane
+            dejavnosti:
           </p>
+          <ul className="text-sm text-ink-dim mt-2 space-y-1">
+            {Object.entries(SPORT_PRICE_PER_HOUR_EUR).map(([sport, price]) => (
+              <li key={sport} className="flex justify-between max-w-xs">
+                <span>{SPORT_LABELS[sport]}</span>
+                <strong className="text-navy">{price}&nbsp;€/uro</strong>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="rounded-xl border border-border bg-white p-5 shadow-sm">
@@ -37,6 +45,17 @@ export default function NavodilaPage() {
           <p className="text-sm text-ink-dim mt-2">
             Gostova rezervacija <strong>čaka na potrditev</strong> upravitelja, ki jo pregleda in
             te obvesti po e-pošti ali telefonu.
+          </p>
+        </section>
+
+        <section className="rounded-xl border border-border bg-white p-5 shadow-sm">
+          <h2 className="font-head text-lg font-bold mb-2 text-navy">E-poštna obvestila</h2>
+          <p className="text-sm">
+            Če si član redne skupine (npr. rekreacijske ekipe z rednim tedenskim terminom) in imaš
+            vklopljeno obveščanje, te po e-pošti obvestimo, če se termin tvoje skupine spremeni ali
+            odpove. Prav tako te lahko obvestimo, če se sprosti kakšen drug termin, ki bi te
+            zanimal &ndash; z neposredno povezavo do rezervacije. Obveščanje ter skupine urejaš
+            upravitelj (pokliči ali napiši, glej spodaj).
           </p>
         </section>
 

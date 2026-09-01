@@ -23,6 +23,9 @@ export interface CalendarBlockedSlot {
   // reason can contain names/private info (e.g. who a recurring block is
   // for), so the public just sees a generic "occupied" state.
   reason?: string;
+  // Which activity occupies the slot (public-safe, unlike reason) - shown
+  // as an icon so the next/previous booking knows what's already set up.
+  sport?: string;
 }
 
 export interface DaySlot {

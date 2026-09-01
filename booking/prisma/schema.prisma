@@ -19,6 +19,8 @@ enum Sport {
   BADMINTON
   ODBOJKA
   KOSARKA
+  REKREACIJA_SKUPINE
+  SEDECA_ODBOJKA
   DRUGO
 }
 
@@ -36,9 +38,24 @@ model User {
   name                String
   phone               String?
   role                Role                 @default(MEMBER)
+  // Whether this member wants to receive e-mail notifications (group term
+  // changes, freed-up slots, ...). Members can still be booked/managed with
+  // this off - it only gates outgoing notification e-mails.
+  notifyOptIn         Boolean              @default(true)
   createdAt           DateTime             @default(now())
   bookings            Booking[]
   passwordResetTokens PasswordResetToken[]
+  groups              Group[]
+}
+
+// A recreational group (e.g. "Četrtkova odbojka") a member can belong to -
+// used to target e-mail notifications about that group's fixed term.
+model Group {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  createdAt    DateTime      @default(now())
+  members      User[]
+  blockedSlots BlockedSlot[]
 }
 
 // Single-use, time-limited token e-mailed to a member so they can set a
@@ -100,7 +117,15 @@ model BlockedSlot {
   startTime DateTime
   endTime   DateTime
   reason    String
+  // Which activity occupies the slot, so the calendar can show its icon
+  // (e.g. so the next/previous booking knows whether to take the net down).
+  sport     Sport?
   createdAt DateTime @default(now())
+
+  // Set when this fixed term belongs to a recreational group - its members
+  // (who opted in) get e-mailed when the term is added or removed.
+  groupId   String?
+  group     Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   // Set when this slot was generated as one occurrence of a recurring block
   // (e.g. "every Thursday, whole season"), so the whole series can be
@@ -109,4 +134,5 @@ model BlockedSlot {
 
   @@index([startTime, endTime])
   @@index([seriesId])
+  @@index([groupId])
 }

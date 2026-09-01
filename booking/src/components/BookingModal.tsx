@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SPORT_LABELS, SPORT_ICONS, PRICE_PER_HOUR_EUR } from "@/lib/config";
+import { SPORT_LABELS, SPORT_ICONS, SPORT_PRICE_PER_HOUR_EUR } from "@/lib/config";
 
 interface Props {
   startTime: Date;
@@ -11,7 +11,14 @@ interface Props {
   onBooked: () => void;
 }
 
-const SPORTS = ["BADMINTON", "ODBOJKA", "KOSARKA", "DRUGO"] as const;
+const SPORTS = [
+  "BADMINTON",
+  "ODBOJKA",
+  "KOSARKA",
+  "REKREACIJA_SKUPINE",
+  "SEDECA_ODBOJKA",
+  "DRUGO",
+] as const;
 
 export default function BookingModal({ startTime, endTime, isMember, onClose, onBooked }: Props) {
   const [sport, setSport] = useState<(typeof SPORTS)[number]>("BADMINTON");
@@ -36,7 +43,7 @@ export default function BookingModal({ startTime, endTime, isMember, onClose, on
   }
   const timeLabel = `${fmtTime(startTime)}–${fmtTime(endTime)}`;
   const durationHours = (endTime.getTime() - startTime.getTime()) / 3600000;
-  const price = (PRICE_PER_HOUR_EUR * durationHours).toLocaleString("sl-SI", {
+  const price = (SPORT_PRICE_PER_HOUR_EUR[sport] * durationHours).toLocaleString("sl-SI", {
     maximumFractionDigits: 2,
   });
 
@@ -107,7 +114,7 @@ export default function BookingModal({ startTime, endTime, isMember, onClose, on
             </p>
 
             <label className="block text-sm font-semibold mb-1.5">Šport</label>
-            <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-4">
               {SPORTS.map((s) => (
                 <button
                   type="button"

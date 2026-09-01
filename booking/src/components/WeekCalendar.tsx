@@ -253,7 +253,7 @@ export default function WeekCalendar({
                       <SlotCell
                         status={status}
                         selected={selected}
-                        sport={booking?.sport}
+                        sport={booking?.sport ?? blocked?.sport}
                         bookedBy={booking?.bookedBy}
                         reason={blocked?.reason}
                         readOnly={readOnly}
@@ -416,25 +416,35 @@ function SlotCell({
       </div>
     );
   }
-  if (onFree) {
+  {
+    const blockedIcon = sport ? SPORT_ICONS[sport] : null;
+    const blockedLabel = reason ?? "Zasedeno";
+    const blockedContent = (
+      <span className="line-clamp-2">
+        {blockedIcon ? `${blockedIcon} ` : ""}
+        {blockedLabel}
+      </span>
+    );
+    if (onFree) {
+      return (
+        <button
+          onClick={onFree}
+          className="w-full h-full rounded bg-gray-100 border border-gray-200 hover:bg-red-100 hover:border-red-300 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] leading-tight text-ink-dim transition-colors"
+          title={blockedLabel + " - klikni za odstranitev blokade in sprostitev termina"}
+        >
+          {blockedContent}
+        </button>
+      );
+    }
     return (
-      <button
-        onClick={onFree}
-        className="w-full h-full rounded bg-gray-100 border border-gray-200 hover:bg-red-100 hover:border-red-300 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] leading-tight text-ink-dim transition-colors"
-        title={(reason ?? "Zasedeno") + " - klikni za odstranitev blokade in sprostitev termina"}
+      <div
+        className="w-full h-full rounded bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] leading-tight text-ink-dim"
+        title={blockedLabel}
       >
-        <span className="line-clamp-2">{reason ?? "Zasedeno"}</span>
-      </button>
+        {blockedContent}
+      </div>
     );
   }
-  return (
-    <div
-      className="w-full h-full rounded bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden px-0.5 text-center text-[9px] leading-tight text-ink-dim"
-      title={reason ?? "Zasedeno"}
-    >
-      <span className="line-clamp-2">{reason ?? "Zasedeno"}</span>
-    </div>
-  );
 }
 
 function Legend() {

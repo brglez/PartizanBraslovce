@@ -1,0 +1,6 @@
+-- AlterEnum
+ALTER TYPE "Sport" ADD VALUE 'REKREACIJA_SKUPINE';
+ALTER TYPE "Sport" ADD VALUE 'SEDECA_ODBOJKA';
+
+-- AlterTable
+ALTER TABLE "BlockedSlot" ADD COLUMN "sport" "Sport";

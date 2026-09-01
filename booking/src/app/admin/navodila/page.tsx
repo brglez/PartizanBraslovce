@@ -42,6 +42,11 @@ export default function AdminNavodilaPage() {
             <strong>Zasedeno</strong> (siva, z razlogom npr. &bdquo;Turnir&ldquo;) &ndash; blokiran termin
           </li>
         </ul>
+        <p>
+          Če je bila pri blokiranem terminu izbrana dejavnost, se pred besedilom prikaže tudi
+          njena ikona (npr. 🏸) &ndash; tako naslednji ali predhodni najemnik na prvi pogled ve, za
+          katero dejavnost gre, in mu po potrebi ni treba pospravljati/postavljati mreže.
+        </p>
       </Section>
 
       <Section title="2. Kako potrdim ali zavrnem rezervacijo gosta">
@@ -76,6 +81,7 @@ export default function AdminNavodilaPage() {
           <li>Izberi uro od&ndash;do (lahko poljubna ura, ni nujno poravnano na polno uro, npr. 20:30&ndash;22:00)</li>
           <li>Izberi obdobje sezone (datum od&ndash;do)</li>
           <li>Vpiši razlog (npr. &bdquo;Redni najem&ldquo;)</li>
+          <li>Po želji izberi dejavnost (za ikono v koledarju) in skupino (če gre za termin skupine &ndash; glej 9. točko, njeni člani bodo o dodanem/odpovedanem terminu obveščeni po e-pošti)</li>
           <li>Preveri predogled &bdquo;Blokiraj N termin(ov)&ldquo; in potrdi</li>
         </ol>
         <p>Serija se v seznamu prikaže združeno, z enim gumbom &bdquo;Odstrani celotno serijo&ldquo;.</p>
@@ -112,6 +118,11 @@ export default function AdminNavodilaPage() {
           Administratorjev prek te strani ni mogoče izbrisati &ndash; to prepreči nesrečo. Člane
           (brez admin pravic) lahko odstraniš z gumbom &bdquo;Odstrani&ldquo;.
         </p>
+        <p>
+          Pri vsakem članu lahko obkljukaš, v katere <strong>skupine</strong> spada (lahko več
+          hkrati), in ali želi prejemati <strong>e-poštna obvestila</strong> &ndash; shrani z gumbom
+          &bdquo;Shrani&ldquo; ob njegovem imenu. Glej tudi 9. točko.
+        </p>
       </Section>
 
       <Section title="8. E-poštna obvestila">
@@ -120,6 +131,40 @@ export default function AdminNavodilaPage() {
           rezervacije, novi ali odstranjeni blokadi termina (tudi posameznem terminu iz serije) in
           spremembi časa obratovanja &ndash; tako je vsak admin ves čas na tekočem, tudi če
           spremembo naredi kdo drug.
+        </p>
+      </Section>
+
+      <Section title="9. Skupine in obveščanje članov">
+        <p>
+          Na <Path>/admin/clani</Path> pod &bdquo;Skupine&ldquo; ustvariš skupino (npr. &bdquo;Četrtkova
+          odbojka&ldquo;) in jo pri vsakem članu obkljukaš. Ko nato na <Path>/admin/koledar</Path> pri
+          ponavljajočem terminu izbereš to skupino (glej 4. točko), se ob dodajanju ali odstranitvi
+          celotne serije samodejno pošlje e-pošta vsem članom te skupine, ki imajo vklopljeno
+          obveščanje (7. točka).
+        </p>
+        <p className="text-ink-dim italic">
+          Skupina je namenjena rednim terminom (npr. klubu ali rekreacijski ekipi) &ndash; za
+          enkratne blokade (turnir, vzdrževanje) skupina ni potrebna.
+        </p>
+      </Section>
+
+      <Section title="10. Obveščanje o sprostitvi termina">
+        <p>
+          Na <Path>/admin/koledar</Path> pod &bdquo;Obvesti člane o sprostitvi termina&ldquo; vpišeš
+          datum/uro termina, ki se je sprostil (npr. po odpovedi), po želji dodaš kratko sporočilo
+          in klikneš &bdquo;Obvesti člane&ldquo;. E-pošto s terminom, tvojim sporočilom in povezavo do
+          rezervacijske platforme prejmejo vsi člani z vklopljenim obveščanjem (7. točka) &ndash;
+          tako lahko termin čim prej zasede kdo drug.
+        </p>
+      </Section>
+
+      <Section title="11. Cene po dejavnosti">
+        <p>
+          Cena najema ni več enotna &ndash; odvisna je od izbrane dejavnosti (Badminton 16&nbsp;€/uro,
+          Rekreacija odbojka/Košarka 21&nbsp;€/uro, Rekreacija skupine/Sedeča odbojka/Drugo
+          23&nbsp;€/uro). Cenik urediš v <Path>src/lib/config.ts</Path>
+          (&bdquo;SPORT_PRICE_PER_HOUR_EUR&ldquo;), prikaže pa se samodejno tudi na javni strani in v
+          rezervacijskem obrazcu.
         </p>
       </Section>
     </div>

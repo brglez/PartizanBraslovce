@@ -29,7 +29,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260829a">
+<link rel="stylesheet" href="css/style.css?v=20260901a">
 
 <script type="application/ld+json">
 {
@@ -54,7 +54,7 @@
     { "@type": "LocationFeatureSpecification", "name": "Sedeča odbojka (para-šport)", "value": true },
     { "@type": "LocationFeatureSpecification", "name": "Športni bar", "value": true }
   ],
-  "priceRange": "8€-15€/uro"
+  "priceRange": "8€-23€/uro"
 }
 </script>
 </head>
@@ -182,8 +182,13 @@
         <div class="price-card reveal price-card-featured">
           <div class="card-icon">🏸</div>
           <h3>Telovadnica</h3>
-          <p class="price">15&nbsp;€ <span>/ uro</span></p>
-          <p class="price-note">Badminton, odbojka ali košarka – izbereš sam.</p>
+          <ul class="price-breakdown">
+            <li><span>Badminton</span><strong>16&nbsp;€ <small>/ uro</small></strong></li>
+            <li><span>Rekreacija odbojka</span><strong>21&nbsp;€ <small>/ uro</small></strong></li>
+            <li><span>Košarka</span><strong>21&nbsp;€ <small>/ uro</small></strong></li>
+            <li><span>Rekreacija skupine</span><strong>23&nbsp;€ <small>/ uro</small></strong></li>
+            <li><span>Sedeča odbojka<span class="item-note">ob petkih</span></span><strong>23&nbsp;€ <small>/ uro</small></strong></li>
+          </ul>
           <a href="https://rezervacije.partizan-braslovce.si/" target="_blank" rel="noopener" class="card-link">Rezerviraj termin &rarr;</a>
         </div>
         <div class="price-card reveal">
@@ -191,6 +196,13 @@
           <h3>Športni bar</h3>
           <p class="price">Meni <span>na licu mesta</span></p>
           <p class="price-note">Pijače in pica po ceniku v lokalu.</p>
+        </div>
+        <div class="price-card reveal">
+          <div class="card-icon">🎈</div>
+          <h3>Otroška praznovanja</h3>
+          <p class="price">Cena <span>po dogovoru</span></p>
+          <p class="price-note">Najem prostora za rojstnodnevne zabave in praznovanja.</p>
+          <a href="#kontakt" class="card-link">Povprašaj &rarr;</a>
         </div>
       </div>
 
@@ -282,6 +294,7 @@
             <option value="Igrišče za odbojko na mivki">Igrišče za odbojko na mivki</option>
             <option value="Telovadnica (badminton/odbojka/košarka)">Telovadnica (badminton/odbojka/košarka)</option>
             <option value="Športni bar / dogodek">Športni bar / dogodek</option>
+            <option value="Otroška praznovanja">Otroška praznovanja</option>
             <option value="Drugo">Drugo</option>
           </select>
 

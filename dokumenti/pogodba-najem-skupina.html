@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pogodba o najemu telovadnice – skupina</title>
+<style>
+  :root {
+    --accent: #e57c1c;
+    --ink: #1a1a1a;
+    --ink-dim: #666;
+    --border: #ccc;
+    --bg-soft: #f7f7f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 28px 80px;
+    line-height: 1.55;
+    font-size: 14px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--ink-dim);
+    margin-bottom: 28px;
+    font-size: .9rem;
+  }
+  h2 {
+    font-size: 1rem;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 4px;
+    margin-top: 30px;
+  }
+  .parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 12px;
+  }
+  .party {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .party h3 {
+    margin: 0 0 8px;
+    font-size: .95rem;
+    color: var(--accent);
+  }
+  .field {
+    margin-bottom: 8px;
+  }
+  .field label {
+    display: block;
+    font-size: .75rem;
+    color: var(--ink-dim);
+    margin-bottom: 2px;
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="time"],
+  .field select {
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: .85rem;
+    font-family: inherit;
+  }
+  .radio-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 10px;
+    font-size: .85rem;
+  }
+  .radio-row label { display: flex; align-items: center; gap: 5px; font-weight: 600; }
+  .fieldset-underline {
+    border: none;
+    border-bottom: 1px solid var(--ink);
+    background: transparent;
+    min-width: 160px;
+  }
+  table.calc {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: .85rem;
+  }
+  table.calc th, table.calc td {
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    text-align: left;
+  }
+  table.calc th { background: var(--bg-soft); }
+  table.calc td.num, table.calc th.num { text-align: right; white-space: nowrap; }
+  .total-row td { font-weight: 700; background: var(--bg-soft); }
+  .grand-total {
+    text-align: right;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-top: 10px;
+    color: var(--accent);
+  }
+  .term-inputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .note {
+    font-size: .78rem;
+    color: var(--ink-dim);
+    margin-top: 6px;
+  }
+  ol.clauses { padding-left: 20px; }
+  ol.clauses li { margin-bottom: 8px; }
+  .signatures {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 60px;
+  }
+  .sig-line {
+    border-top: 1px solid var(--ink);
+    margin-top: 50px;
+    padding-top: 6px;
+    font-size: .8rem;
+    text-align: center;
+  }
+  .place-date {
+    margin-top: 30px;
+    font-size: .85rem;
+  }
+  .place-date input {
+    border: none;
+    border-bottom: 1px solid var(--ink);
+    font-family: inherit;
+    font-size: .85rem;
+    padding: 2px 4px;
+  }
+  .toolbar {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+  }
+  .toolbar button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  @media print {
+    .toolbar { display: none; }
+    body { padding: 0 10px; }
+    .party, table.calc { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button onclick="izracunaj()">Preračunaj</button>
+  <button onclick="window.print()">Natisni</button>
+</div>
+
+<h1>Pogodba o najemu telovadnice</h1>
+<p class="subtitle">Telovadnica Partizan Braslovče &middot; redni tedenski termin za skupino</p>
+
+<h2>1. Pogodbeni stranki</h2>
+<div class="parties">
+  <div class="party">
+    <h3>Ponudnik (najemodajalec)</h3>
+    <p style="margin:0">
+      <strong>Žan Muhovic s.p.</strong><br>
+      Rakovlje 39, 3314 Braslovče<br>
+      Davčna št.: 99864932<br>
+      Telovadnica: Rakovlje 14, 3314 Braslovče<br>
+      070 292 363 &middot; zanmuhovic6@gmail.com
+    </p>
+  </div>
+  <div class="party">
+    <h3>Naročnik (najemnik)</h3>
+    <div class="radio-row">
+      <label><input type="radio" name="tipNarocnika" value="pravna" checked onchange="preklopiNarocnika()"> Pravna oseba / društvo</label>
+      <label><input type="radio" name="tipNarocnika" value="fizicna" onchange="preklopiNarocnika()"> Fizična oseba (predstavnik skupine)</label>
+    </div>
+
+    <div id="blokPravna">
+      <div class="field"><label>Naziv (klub/društvo)</label><input type="text" placeholder="npr. ŠD Braslovče"></div>
+      <div class="field"><label>Naslov</label><input type="text" placeholder="Ulica in hišna št., pošta"></div>
+      <div class="field"><label>Matična št.</label><input type="text"></div>
+      <div class="field"><label>Davčna št.</label><input type="text"></div>
+      <div class="field"><label>Zastopnik (ime in priimek)</label><input type="text"></div>
+    </div>
+
+    <div id="blokFizicna" style="display:none">
+      <div class="field"><label>Ime in priimek</label><input type="text"></div>
+      <div class="field"><label>Naslov</label><input type="text"></div>
+      <div class="field"><label>EMŠO / davčna št.</label><input type="text"></div>
+      <div class="field"><label>Predstavlja skupino (naziv)</label><input type="text" placeholder="npr. rekreacijska skupina 'Četrtkova odbojka'"></div>
+    </div>
+
+    <div class="field"><label>Telefon</label><input type="text"></div>
+    <div class="field"><label>E-pošta</label><input type="text"></div>
+  </div>
+</div>
+
+<h2>2. Predmet pogodbe in termin</h2>
+<p>Najemodajalec odda najemniku v uporabo telovadnico Partizan Braslovče za redno tedensko izvajanje
+spodaj navedene dejavnosti, ob spodaj navedenem dnevu in uri, v obdobjih iz 3. člena.</p>
+
+<div class="term-inputs">
+  <div class="field">
+    <label>Dan v tednu</label>
+    <select id="dan" onchange="izracunaj()">
+      <option value="1">Ponedeljek</option>
+      <option value="2">Torek</option>
+      <option value="3">Sreda</option>
+      <option value="4" selected>Četrtek</option>
+      <option value="5">Petek</option>
+      <option value="6">Sobota</option>
+      <option value="0">Nedelja</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Od (ura)</label>
+    <input type="time" id="uraOd" value="20:00" onchange="izracunaj()">
+  </div>
+  <div class="field">
+    <label>Do (ura)</label>
+    <input type="time" id="uraDo" value="21:00" onchange="izracunaj()">
+  </div>
+  <div class="field">
+    <label>Dejavnost</label>
+    <select id="dejavnost" onchange="izracunaj()">
+      <option value="16">Badminton (16 €/uro)</option>
+      <option value="21" selected>Rekreacija odbojka / Košarka (21 €/uro)</option>
+      <option value="23">Rekreacija skupine (23 €/uro)</option>
+      <option value="23">Sedeča odbojka (23 €/uro)</option>
+    </select>
+  </div>
+</div>
+
+<h2>3. Obdobje najema in cena</h2>
+<p>Sezona je razdeljena na dva dela, vsak se plača posebej. Termini, ki bi padli na državni praznik
+ali dela prost dan (ko je dvorana zaprta), so iz izračuna in cene izvzeti.</p>
+
+<div class="field" style="max-width:220px; margin-bottom:14px;">
+  <label>Sezona (začetno leto 1. dela, npr. 2026)</label>
+  <input type="text" id="sezonaLeto" value="2026" onchange="izracunaj()">
+</div>
+
+<table class="calc">
+  <thead>
+    <tr>
+      <th>Del sezone</th>
+      <th>Obdobje</th>
+      <th class="num">Št. terminov (brez praznikov)</th>
+      <th class="num">Cena/uro</th>
+      <th class="num">Trajanje (h)</th>
+      <th class="num">Skupaj</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1. del sezone</td>
+      <td id="obdobje1"></td>
+      <td class="num" id="stTerminov1"></td>
+      <td class="num" id="cenaUra1"></td>
+      <td class="num" id="trajanje1"></td>
+      <td class="num" id="skupaj1"></td>
+    </tr>
+    <tr>
+      <td>2. del sezone</td>
+      <td id="obdobje2"></td>
+      <td class="num" id="stTerminov2"></td>
+      <td class="num" id="cenaUra2"></td>
+      <td class="num" id="trajanje2"></td>
+      <td class="num" id="skupaj2"></td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="5">Skupaj za celotno sezono</td>
+      <td class="num" id="skupajVse"></td>
+    </tr>
+  </tbody>
+</table>
+<p class="note" id="izvzetiPrazniki"></p>
+
+<h2>4. Način plačila</h2>
+<ol class="clauses">
+  <li>Naročnik plača znesek za <strong>1. del sezone</strong> (1. 9.–31. 12.) pred pričetkom tega
+    obdobja, najkasneje do
+    <input class="fieldset-underline" type="text" placeholder="dd. mm. llll">, na podlagi izstavljenega
+    predračuna/računa.</li>
+  <li>Naročnik plača znesek za <strong>2. del sezone</strong> (1. 1.–31. 5.) pred pričetkom tega
+    obdobja, najkasneje do
+    <input class="fieldset-underline" type="text" placeholder="dd. mm. llll">, na podlagi izstavljenega
+    predračuna/računa.</li>
+  <li>Plačilo se izvede na transakcijski račun najemodajalca, naveden na izstavljenem računu.</li>
+</ol>
+
+<h2>5. Ostale določbe</h2>
+<ol class="clauses">
+  <li>Najemnik uporablja telovadnico izključno v dogovorjenem terminu in za dogovorjeno dejavnost;
+    po uporabi pusti prostor pospravljen in opremo na svojem mestu.</li>
+  <li>Za morebitno škodo, ki jo naročnik ali udeleženci povzročijo na opremi ali prostoru, odgovarja
+    naročnik.</li>
+  <li>Najemodajalec lahko izjemoma odpove posamezen termin zaradi tekmovanj, vzdrževanja ali višje
+    sile; o tem naročnika obvesti čim prej, odpadli termin pa se prišteje k naslednjemu delu sezone
+    ali se sorazmerno odšteje od cene.</li>
+  <li>Vsaka od strank lahko pogodbo redno odpove z odpovednim rokom 30 dni; za obdobje do izteka
+    odpovednega roka ostane plačilna obveznost v veljavi.</li>
+  <li>Za vse, kar ni urejeno s to pogodbo, se uporabljajo določila Obligacijskega zakonika.</li>
+</ol>
+
+<div class="place-date">
+  Sestavljeno v Braslovčah, dne <input type="text" placeholder="dd. mm. llll" size="14">.
+</div>
+
+<div class="signatures">
+  <div class="sig-line">Najemodajalec (Žan Muhovic s.p.)</div>
+  <div class="sig-line">Naročnik</div>
+</div>
+
+<script>
+// Gauss-ov algoritem za datum velike noči (nedelja) za dano leto.
+function velikaNoc(leto) {
+  const a = leto % 19;
+  const b = Math.floor(leto / 100);
+  const c = leto % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mesec = Math.floor((h + l - 7 * m + 114) / 31);
+  const dan = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(leto, mesec - 1, dan);
+}
+
+function dodajDni(d, n) {
+  const nov = new Date(d);
+  nov.setDate(nov.getDate() + n);
+  return nov;
+}
+
+// Vsi slovenski državni prazniki in dela prosti dnevi za dano leto (ZPDPD).
+function prazniki(leto) {
+  const vn = velikaNoc(leto);
+  const seznam = [
+    new Date(leto, 0, 1),   // novo leto
+    new Date(leto, 0, 2),   // novo leto
+    new Date(leto, 1, 8),   // Prešernov dan
+    vn,                      // velika noč (nedelja)
+    dodajDni(vn, 1),         // velikonočni ponedeljek
+    new Date(leto, 3, 27),  // dan upora proti okupatorju
+    new Date(leto, 4, 1),   // praznik dela
+    new Date(leto, 4, 2),   // praznik dela
+    dodajDni(vn, 49),        // binkoštna nedelja
+    new Date(leto, 5, 25),  // dan državnosti
+    new Date(leto, 7, 15),  // Marijino vnebovzetje
+    new Date(leto, 9, 31),  // dan reformacije
+    new Date(leto, 10, 1),  // dan spomina na mrtve
+    new Date(leto, 11, 25), // božič
+    new Date(leto, 11, 26), // dan samostojnosti in enotnosti
+  ];
+  return seznam.map((d) => d.toDateString());
+}
+
+function fmtDan(d) {
+  return d.toLocaleDateString("sl-SI", { day: "numeric", month: "numeric", year: "numeric" });
+}
+
+// Prešteje termine izbranega tedenskega dne med [od, do] (vključno), izvzame praznike tistega
+// leta in naslednjega (obdobje lahko sega čez novo leto).
+function steviloTerminov(dan, od, do_) {
+  const praznikiSet = new Set([...prazniki(od.getFullYear()), ...prazniki(do_.getFullYear())]);
+  let stevilo = 0;
+  let izvzeti = [];
+  const cur = new Date(od);
+  while (cur <= do_) {
+    if (cur.getDay() === dan) {
+      if (praznikiSet.has(cur.toDateString())) {
+        izvzeti.push(fmtDan(cur));
+      } else {
+        stevilo++;
+      }
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return { stevilo, izvzeti };
+}
+
+function preklopiNarocnika() {
+  const pravna = document.querySelector('input[name="tipNarocnika"]:checked').value === "pravna";
+  document.getElementById("blokPravna").style.display = pravna ? "" : "none";
+  document.getElementById("blokFizicna").style.display = pravna ? "none" : "";
+}
+
+function izracunaj() {
+  const leto = parseInt(document.getElementById("sezonaLeto").value, 10) || new Date().getFullYear();
+  const dan = parseInt(document.getElementById("dan").value, 10);
+  const cenaUra = parseFloat(document.getElementById("dejavnost").value);
+
+  const [hOd, mOd] = document.getElementById("uraOd").value.split(":").map(Number);
+  const [hDo, mDo] = document.getElementById("uraDo").value.split(":").map(Number);
+  let trajanje = (hDo * 60 + mDo - (hOd * 60 + mOd)) / 60;
+  if (!(trajanje > 0)) trajanje = 1;
+
+  const obdobje1Od = new Date(leto, 8, 1);       // 1. 9.
+  const obdobje1Do = new Date(leto, 11, 31);      // 31. 12.
+  const obdobje2Od = new Date(leto + 1, 0, 1);    // 1. 1.
+  const obdobje2Do = new Date(leto + 1, 4, 31);   // 31. 5.
+
+  const r1 = steviloTerminov(dan, obdobje1Od, obdobje1Do);
+  const r2 = steviloTerminov(dan, obdobje2Od, obdobje2Do);
+
+  const skupaj1 = r1.stevilo * cenaUra * trajanje;
+  const skupaj2 = r2.stevilo * cenaUra * trajanje;
+
+  document.getElementById("obdobje1").textContent = fmtDan(obdobje1Od) + " – " + fmtDan(obdobje1Do);
+  document.getElementById("obdobje2").textContent = fmtDan(obdobje2Od) + " – " + fmtDan(obdobje2Do);
+  document.getElementById("stTerminov1").textContent = r1.stevilo;
+  document.getElementById("stTerminov2").textContent = r2.stevilo;
+  document.getElementById("cenaUra1").textContent = cenaUra.toFixed(2) + " €";
+  document.getElementById("cenaUra2").textContent = cenaUra.toFixed(2) + " €";
+  document.getElementById("trajanje1").textContent = trajanje.toLocaleString("sl-SI");
+  document.getElementById("trajanje2").textContent = trajanje.toLocaleString("sl-SI");
+  document.getElementById("skupaj1").textContent = skupaj1.toLocaleString("sl-SI", { maximumFractionDigits: 2 }) + " €";
+  document.getElementById("skupaj2").textContent = skupaj2.toLocaleString("sl-SI", { maximumFractionDigits: 2 }) + " €";
+  document.getElementById("skupajVse").textContent = (skupaj1 + skupaj2).toLocaleString("sl-SI", { maximumFractionDigits: 2 }) + " €";
+
+  const vsiIzvzeti = [...r1.izvzeti, ...r2.izvzeti];
+  document.getElementById("izvzetiPrazniki").textContent = vsiIzvzeti.length
+    ? "Izvzeti termini (padejo na praznik/dela prost dan): " + vsiIzvzeti.join(", ") + "."
+    : "V izbranem obdobju na ta dan ni praznikov/dela prostih dni.";
+}
+
+izracunaj();
+</script>
+
+</body>
+</html>

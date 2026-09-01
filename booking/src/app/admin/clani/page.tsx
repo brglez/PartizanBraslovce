@@ -1,12 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { removeMember } from "../actions";
 import AddMemberForm from "./AddMemberForm";
+import GroupsForm from "./GroupsForm";
+import MemberSettingsForm from "./MemberSettingsForm";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 
 export default async function AdminMembersPage() {
-  const [admins, members] = await Promise.all([
+  const [admins, members, groups] = await Promise.all([
     prisma.user.findMany({ where: { role: "ADMIN" }, orderBy: { createdAt: "asc" } }),
-    prisma.user.findMany({ where: { role: "MEMBER" }, orderBy: { createdAt: "desc" } }),
+    prisma.user.findMany({
+      where: { role: "MEMBER" },
+      orderBy: { createdAt: "desc" },
+      include: { groups: { select: { id: true } } },
+    }),
+    prisma.group.findMany({
+      orderBy: { name: "asc" },
+      include: { _count: { select: { members: true } } },
+    }),
   ]);
 
   return (
@@ -45,6 +55,17 @@ export default async function AdminMembersPage() {
       </div>
 
       <div>
+        <h2 className="font-head text-lg font-bold mb-3">Skupine</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <GroupsForm groups={groups} />
+        </div>
+        <p className="text-xs text-ink-dim mt-2">
+          Skupine so za obveščanje po e-pošti ob spremembi rednega termina (npr. ko je termin za
+          skupino dodan ali odpovedan v koledarju).
+        </p>
+      </div>
+
+      <div>
         <h2 className="font-head text-lg font-bold mb-3">Seznam članov ({members.length})</h2>
         {members.length === 0 ? (
           <p className="text-ink-dim text-sm">Še ni dodanih članov.</p>
@@ -70,6 +91,12 @@ export default async function AdminMembersPage() {
                     Odstrani
                   </ConfirmSubmitButton>
                 </form>
+                <MemberSettingsForm
+                  userId={m.id}
+                  groups={groups}
+                  memberGroupIds={m.groups.map((g) => g.id)}
+                  notifyOptIn={m.notifyOptIn}
+                />
               </div>
             ))}
           </div>

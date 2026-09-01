@@ -32,6 +32,36 @@ export async function notifyAdmins(subject: string, text: string) {
   }
 }
 
+// Tells every member of a group who wants notifications about a change to
+// that group's fixed term (new term set, or term cancelled).
+export async function notifyGroupMembers(groupId: string, subject: string, text: string) {
+  try {
+    const members = await prisma.user.findMany({
+      where: { groups: { some: { id: groupId } }, notifyOptIn: true },
+      select: { email: true },
+    });
+    if (members.length === 0) return;
+    await sendMail(members.map((m) => m.email), subject, text);
+  } catch (err) {
+    console.error("notifyGroupMembers failed:", err);
+  }
+}
+
+// Broadcasts a message to every member who opted in to notifications - used
+// when a term frees up and the admin wants to let members know.
+export async function notifyOptedInMembers(subject: string, text: string) {
+  try {
+    const members = await prisma.user.findMany({
+      where: { role: "MEMBER", notifyOptIn: true },
+      select: { email: true },
+    });
+    if (members.length === 0) return;
+    await sendMail(members.map((m) => m.email), subject, text);
+  } catch (err) {
+    console.error("notifyOptedInMembers failed:", err);
+  }
+}
+
 // Tells a guest (no account) whether their reservation request was
 // confirmed or rejected.
 export async function notifyGuestDecision(

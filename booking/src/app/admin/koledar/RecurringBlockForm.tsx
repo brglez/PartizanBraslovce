@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { createRecurringBlockedSlot } from "../actions";
+import { SPORT_LABELS } from "@/lib/config";
 
 const WEEKDAYS = [
   { value: 1, label: "Ponedeljek" },
@@ -61,7 +62,11 @@ function computeOccurrences(
   return occurrences;
 }
 
-export default function RecurringBlockForm() {
+interface Props {
+  groups: { id: string; name: string }[];
+}
+
+export default function RecurringBlockForm({ groups }: Props) {
   const [state, formAction, pending] = useActionState(createRecurringBlockedSlot, undefined);
   const [weekday, setWeekday] = useState(4);
   const [startTime, setStartTime] = useState("20:30");
@@ -163,6 +168,44 @@ export default function RecurringBlockForm() {
           placeholder="Redni najem, trening ..."
           className="w-full rounded-lg border border-border bg-[#fafbfd] px-3 py-2 text-sm"
         />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold mb-1" htmlFor="recurSport">
+          Dejavnost (za ikono v koledarju)
+        </label>
+        <select
+          id="recurSport"
+          name="sport"
+          defaultValue=""
+          className="w-full rounded-lg border border-border bg-[#fafbfd] px-3 py-2 text-sm"
+        >
+          <option value="">Brez ikone</option>
+          {Object.entries(SPORT_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold mb-1" htmlFor="recurGroup">
+          Skupina (obvesti člane po e-pošti)
+        </label>
+        <select
+          id="recurGroup"
+          name="groupId"
+          defaultValue=""
+          className="w-full rounded-lg border border-border bg-[#fafbfd] px-3 py-2 text-sm"
+        >
+          <option value="">Brez skupine</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="sm:col-span-3 flex items-center gap-4">

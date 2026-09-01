@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         startTime: { lt: end },
         endTime: { gt: start },
       },
-      select: { id: true, startTime: true, endTime: true, reason: true },
+      select: { id: true, startTime: true, endTime: true, reason: true, sport: true },
     }),
   ]);
 
@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
     startTime: b.startTime,
     endTime: b.endTime,
     reason: isAdmin ? b.reason : undefined,
+    sport: b.sport ?? undefined,
   }));
 
   const bookings = bookingRows.map((b) => {

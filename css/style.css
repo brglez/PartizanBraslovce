@@ -366,6 +366,38 @@ img { max-width: 100%; display: block; }
   color: var(--ink-dim);
   font-size: .9rem;
 }
+.price-breakdown {
+  list-style: none;
+  margin: 20px 0;
+  padding: 0;
+  text-align: left;
+}
+.price-breakdown li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .15);
+  font-size: .95rem;
+}
+.price-breakdown li:last-child { border-bottom: none; }
+.price-breakdown .item-note {
+  display: block;
+  font-size: .8rem;
+  color: var(--text-dim);
+}
+.price-breakdown strong {
+  font-family: var(--ff-head);
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.price-breakdown strong small {
+  font-size: .75rem;
+  font-weight: 500;
+  opacity: .7;
+}
 .pricing-footnote {
   text-align: center;
   color: var(--ink-dim);

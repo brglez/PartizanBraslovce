@@ -7,7 +7,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { assertValidBlockedSlot } from "@/lib/bookings";
 import { updateHallHours } from "@/lib/settings";
-import { notifyAdmins, notifyGuestDecision, fmtRange } from "@/lib/notify";
+import {
+  notifyAdmins,
+  notifyGuestDecision,
+  notifyGroupMembers,
+  notifyOptedInMembers,
+  fmtRange,
+} from "@/lib/notify";
+import { HALL_NAME } from "@/lib/config";
 
 async function requireAdmin() {
   const session = await auth();
@@ -82,11 +89,21 @@ export async function cancelBooking(bookingId: string) {
   );
 }
 
+const sportEnum = z.enum([
+  "BADMINTON",
+  "ODBOJKA",
+  "KOSARKA",
+  "REKREACIJA_SKUPINE",
+  "SEDECA_ODBOJKA",
+  "DRUGO",
+]);
+
 const blockedSlotSchema = z
   .object({
     startTime: z.iso.datetime(),
     endTime: z.iso.datetime(),
     reason: z.string().trim().min(2).max(200),
+    sport: sportEnum.optional(),
   })
   .refine((v) => new Date(v.endTime) > new Date(v.startTime), {
     message: "Čas konca mora biti za časom začetka.",
@@ -103,6 +120,7 @@ export async function createBlockedSlot(
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
     reason: formData.get("reason"),
+    sport: formData.get("sport") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
@@ -116,7 +134,7 @@ export async function createBlockedSlot(
   }
 
   await prisma.blockedSlot.create({
-    data: { startTime, endTime, reason: parsed.data.reason },
+    data: { startTime, endTime, reason: parsed.data.reason, sport: parsed.data.sport },
   });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
@@ -153,6 +171,8 @@ const recurringBlockSchema = z.object({
     .min(1, "Izbrano obdobje ne vsebuje nobenega termina.")
     .max(200, "Preveč terminov naenkrat (največ 200) - skrajšaj obdobje sezone."),
   reason: z.string().trim().min(2).max(200),
+  sport: sportEnum.optional(),
+  groupId: z.string().trim().min(1).optional(),
 });
 
 export type RecurringBlockState = { error?: string } | undefined;
@@ -170,7 +190,12 @@ export async function createRecurringBlockedSlot(
     return { error: "Neveljavni podatki o terminih." };
   }
 
-  const parsed = recurringBlockSchema.safeParse({ occurrences, reason: formData.get("reason") });
+  const parsed = recurringBlockSchema.safeParse({
+    occurrences,
+    reason: formData.get("reason"),
+    sport: formData.get("sport") || undefined,
+    groupId: formData.get("groupId") || undefined,
+  });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
   }
@@ -189,6 +214,8 @@ export async function createRecurringBlockedSlot(
       startTime: new Date(occ.startTime),
       endTime: new Date(occ.endTime),
       reason: parsed.data.reason,
+      sport: parsed.data.sport,
+      groupId: parsed.data.groupId,
       seriesId,
     })),
   });
@@ -199,11 +226,22 @@ export async function createRecurringBlockedSlot(
     "Koledar: nova ponavljajoča blokada",
     `${session.user.name} je dodal(a) ponavljajočo blokado (${parsed.data.occurrences.length} terminov, prvi ${fmtRange(new Date(first.startTime), new Date(first.endTime))}) - ${parsed.data.reason}.`
   );
+  if (parsed.data.groupId) {
+    const group = await prisma.group.findUnique({ where: { id: parsed.data.groupId } });
+    if (group) {
+      await notifyGroupMembers(
+        group.id,
+        `Nov redni termin – ${group.name}`,
+        `Pozdravljeni,\n\nza skupino ${group.name} je bil dodan redni tedenski termin, prvi ${fmtRange(new Date(first.startTime), new Date(first.endTime))} (skupaj ${parsed.data.occurrences.length} terminov).\n\nLep pozdrav,\n${HALL_NAME}`
+      );
+    }
+  }
   return undefined;
 }
 
 export async function deleteBlockedSlotSeries(seriesId: string) {
   const session = await requireAdmin();
+  const occurrences = await prisma.blockedSlot.findMany({ where: { seriesId } });
   const removed = await prisma.blockedSlot.deleteMany({ where: { seriesId } });
   revalidatePath("/admin/koledar");
   revalidatePath("/");
@@ -211,6 +249,17 @@ export async function deleteBlockedSlotSeries(seriesId: string) {
     "Koledar: ponavljajoča blokada odstranjena",
     `${session.user.name} je odstranil(a) ponavljajočo blokado (${removed.count} terminov).`
   );
+  const groupId = occurrences.find((o) => o.groupId)?.groupId;
+  if (groupId) {
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (group) {
+      await notifyGroupMembers(
+        group.id,
+        `Redni termin odpovedan – ${group.name}`,
+        `Pozdravljeni,\n\nredni tedenski termin za skupino ${group.name} je bil odpovedan.\n\nLep pozdrav,\n${HALL_NAME}`
+      );
+    }
+  }
 }
 
 const memberSchema = z.object({
@@ -265,6 +314,92 @@ export async function removeMember(userId: string) {
   }
   await prisma.user.delete({ where: { id: userId, role: "MEMBER" } });
   revalidatePath("/admin/clani");
+}
+
+export type GroupState = { error?: string } | undefined;
+
+export async function createGroup(_prev: GroupState, formData: FormData): Promise<GroupState> {
+  await requireAdmin();
+  const name = String(formData.get("name") || "").trim();
+  if (name.length < 2) {
+    return { error: "Ime skupine mora imeti vsaj 2 znaka." };
+  }
+  const existing = await prisma.group.findUnique({ where: { name } });
+  if (existing) {
+    return { error: "Skupina s tem imenom že obstaja." };
+  }
+  await prisma.group.create({ data: { name } });
+  revalidatePath("/admin/clani");
+  revalidatePath("/admin/koledar");
+  return undefined;
+}
+
+export async function deleteGroup(groupId: string) {
+  await requireAdmin();
+  await prisma.group.delete({ where: { id: groupId } });
+  revalidatePath("/admin/clani");
+  revalidatePath("/admin/koledar");
+}
+
+// Sets exactly which groups a member belongs to and whether they want
+// notification e-mails - submitted together from one row on /admin/clani.
+export async function updateMemberSettings(userId: string, formData: FormData) {
+  await requireAdmin();
+  const groupIds = formData.getAll("groupIds").map(String);
+  const notifyOptIn = formData.get("notifyOptIn") === "on";
+  await prisma.user.update({
+    where: { id: userId, role: "MEMBER" },
+    data: {
+      notifyOptIn,
+      groups: { set: groupIds.map((id) => ({ id })) },
+    },
+  });
+  revalidatePath("/admin/clani");
+}
+
+const notifyFreedSlotSchema = z
+  .object({
+    startTime: z.iso.datetime(),
+    endTime: z.iso.datetime(),
+    message: z.string().trim().max(500).optional(),
+  })
+  .refine((v) => new Date(v.endTime) > new Date(v.startTime), {
+    message: "Čas konca mora biti za časom začetka.",
+  });
+
+export type NotifyFreedSlotState = { error?: string; sent?: boolean } | undefined;
+
+// Lets an admin broadcast to every opted-in member that a specific term
+// just freed up, with an optional note and a link to go book it.
+export async function notifyFreedSlot(
+  _prev: NotifyFreedSlotState,
+  formData: FormData
+): Promise<NotifyFreedSlotState> {
+  await requireAdmin();
+  const parsed = notifyFreedSlotSchema.safeParse({
+    startTime: formData.get("startTime"),
+    endTime: formData.get("endTime"),
+    message: formData.get("message") || undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Neveljavni podatki." };
+  }
+  const startTime = new Date(parsed.data.startTime);
+  const endTime = new Date(parsed.data.endTime);
+  const when = fmtRange(startTime, endTime);
+  const link = process.env.NEXTAUTH_URL || "https://rezervacije.partizan-braslovce.si/";
+  const text = [
+    `Pozdravljeni,`,
+    ``,
+    `sprostil se je termin: ${when}.`,
+    parsed.data.message ? `\n${parsed.data.message}\n` : "",
+    `Če te zanima, ga rezerviraj tukaj: ${link}`,
+    ``,
+    `Lep pozdrav,`,
+    HALL_NAME,
+  ].join("\n");
+  await notifyOptedInMembers(`Sprostil se je termin – ${when}`, text);
+  return { sent: true };
 }
 
 const hallHoursSchema = z

@@ -5,6 +5,7 @@ import { getHallHours } from "@/lib/settings";
 import { approveBooking, rejectBooking, cancelBooking, deleteBlockedSlot, deleteBlockedSlotSeries } from "../actions";
 import BlockSlotForm from "./BlockSlotForm";
 import RecurringBlockForm from "./RecurringBlockForm";
+import NotifyFreedSlotForm from "./NotifyFreedSlotForm";
 import HallHoursForm from "./HallHoursForm";
 import WeekCalendar from "@/components/WeekCalendar";
 import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
@@ -35,7 +36,7 @@ export default async function AdminCalendarPage() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekEnd = addDays(weekStart, 7);
 
-  const [hallHours, bookings, blockedSlots, weekBookings, weekBlockedSlots] = await Promise.all([
+  const [hallHours, bookings, blockedSlots, weekBookings, weekBlockedSlots, groups] = await Promise.all([
     getHallHours(),
     prisma.booking.findMany({
       where: {
@@ -69,8 +70,9 @@ export default async function AdminCalendarPage() {
     }),
     prisma.blockedSlot.findMany({
       where: { startTime: { lt: weekEnd }, endTime: { gt: weekStart } },
-      select: { id: true, startTime: true, endTime: true, reason: true },
+      select: { id: true, startTime: true, endTime: true, reason: true, sport: true },
     }),
+    prisma.group.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   const singleBlocks = blockedSlots.filter((b) => !b.seriesId);
@@ -111,6 +113,7 @@ export default async function AdminCalendarPage() {
             ...b,
             startTime: b.startTime.toISOString(),
             endTime: b.endTime.toISOString(),
+            sport: b.sport ?? undefined,
           }))}
         />
       </div>
@@ -209,8 +212,19 @@ export default async function AdminCalendarPage() {
       <div>
         <h2 className="font-head text-lg font-bold mb-3">Ponavljajoč termin (npr. cela sezona)</h2>
         <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-          <RecurringBlockForm />
+          <RecurringBlockForm groups={groups} />
         </div>
+      </div>
+
+      <div>
+        <h2 className="font-head text-lg font-bold mb-3">Obvesti člane o sprostitvi termina</h2>
+        <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <NotifyFreedSlotForm />
+        </div>
+        <p className="text-xs text-ink-dim mt-2">
+          Pošlje e-pošto vsem članom, ki so vklopili obveščanje, z izbranim terminom in povezavo do
+          rezervacijske platforme.
+        </p>
       </div>
 
       {seriesGroups.size > 0 && (
